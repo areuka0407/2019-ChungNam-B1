@@ -1,0 +1,40 @@
+<div id="contact_2" class="contact">
+    <div class="mt-5 d-flex justify-content-between">
+        <div class="devide w-40 d-flex justify-content-center align-items-center padding">
+            <div class="info float-right">
+                <div class="title">
+                    <h1 lang="en">Contact Us</h1>
+                    <p class="mt-2" lang="ko">도움이 필요하신가요?</p>
+                </div>
+                <div class="contents">
+                    <h4 class="sub-title" lang="en">Address</h5>
+                    <p class="mt-2 d-flex">
+                        <span class="icon mr-1"><img src="./images/icons/info_1.png" title="정보 아이콘" alt="정보 아이콘"></span>
+                        주소 : 부산시 해운대구 123 
+                    </p>
+                    <p class="mt-2 d-flex">
+                        <span class="icon mr-1"><img src="./images/icons/info_2.png" title="정보 아이콘" alt="정보 아이콘"></span>
+                        전화번호 : 123-456-7890 
+                    </p>
+                    <p class="mt-2 d-flex">
+                        <span class="icon mr-1"><img src="./images/icons/info_3.png" title="정보 아이콘" alt="정보 아이콘"></span>
+                        이메일 : webskills@skills.com
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="divide vw-60">
+            <div class="form float-left py-5">
+                <div class="section-title left">
+                    <h1>Send us a Message</h1>
+                </div>
+                <div class="grid mt-2">
+                    <input type="text" class="form-control my-1" name="name" required autocomplete="off" placeholder="이름">
+                    <input type="text" class="form-control my-1" name="email" required autocomplete="off" placeholder="이메일">
+                    <textarea name="message" cols="50" rows="4" class="form-control my-1" required autocomplete="off" placeholder="내용을 입력하세요"></textarea>
+                    <button class="btn px-4 py-1 my-1">작성하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
