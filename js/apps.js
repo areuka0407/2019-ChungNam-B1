@@ -475,6 +475,10 @@ class App {
             this.$wrap.append(elem);
             
         });
+
+        if(cv.viewList.includes("Visual_1") || cv.viewList.includes("Visual_2")){
+            this.slideEvent();
+        }
         
         localStorage.setItem("view_id", this.view_id);
     }
@@ -515,6 +519,14 @@ class App {
             let exist = document.querySelector(".context-menu");
             exist && exist.remove();
         });
+    }
+
+    slideEvent(){
+        let box1 = document.querySelector("#visual-1 .images > div");
+        let images1 = document.querySelectorAll("#visual img");
+        if(box1){
+            
+        }
     }
 
     contextMenu({event, id}){

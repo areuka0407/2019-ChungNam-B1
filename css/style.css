@@ -332,18 +332,19 @@ nav .n-item:hover a::after {
     flex-direction: column;
     width: 100%;
     height: 600%;
-    animation: slideBox 15s infinite;
+    /* animation: slideBox 15s infinite; */
 }
 
 #visual-1 .image {
     width: calc(100%);
     height: calc(100% / 6);
-    animation: slideImage infinite 15s;
+    /* animation: slideImage infinite 15s; */
     box-shadow: 0 1px 5px 3px #00000040;
 }
 
 #visual-1 img { width: 100%; heighT: 100%; object-fit: cover; }
 
+/*
 @keyframes slideBox {
     0%      { transform: translateY( calc(100% / 6 * -1) ); }
     20%     { transform: translateY( calc(100% / 6 * -1) ); }
@@ -366,7 +367,7 @@ nav .n-item:hover a::after {
     66.666% { opacity: 0.5; transform: scale(0.8) }
     100%    { opacity: 0.5; transform: scale(0.8) }
 }
-
+*/
 
 /* 비쥬얼 - 2
 */
@@ -395,9 +396,10 @@ nav .n-item:hover a::after {
     height: 100%;
     filter: brightness(50%);
     transform-origin: left bottom;
-    animation: slide2 15s infinite;
+    /* animation: slide2 15s infinite; */
 }
 
+/*
 #visual-2 .images img:nth-child(1) { animation-delay: -5s;  }
 #visual-2 .images img:nth-child(3) { animation-delay: -10s; }
 
@@ -410,6 +412,7 @@ nav .n-item:hover a::after {
     66.667% { z-index: 1; opacity: 0; }
     100%    { z-index: 1; opacity: 0; }
 }
+*/
 
 #visual-2 .contents {
     position: absolute;
