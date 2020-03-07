@@ -1,10 +1,10 @@
 <div id="visual-1">
     <div class="contents">
-        <h1>부산국제매직페스티벌</h1>
-        <p lang="en">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque maxime error fugiat, non, accusantium atque. Dolores velit, reiciendis repellendus odit illo unde. Qui error labore perferendis quos veritatis, voluptatibus itaque.</p>
-        <button class="btn" lang="en">Learn more</button>
+        <h1 class="has-context" data-context="showhide textStyle">부산국제매직페스티벌</h1>
+        <p lang="en" class="has-context" data-context="showhide textStyle">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque maxime error fugiat, non, accusantium atque. Dolores velit, reiciendis repellendus odit illo unde. Qui error labore perferendis quos veritatis, voluptatibus itaque.</p>
+        <a href="#" class="btn" lang="en" class="has-context" data-context="showhide textStyle editLink">Learn more</a>
     </div>
-    <div class="images">
+    <div class="images" class="has-context" data-context="editSlide">
         <div>
             <div class="image image-3"><img src="images/slide_3.jpg" title="비쥬얼 이미지" alt="비쥬얼 이미지"></div>
             <div class="image image-1"><img src="images/slide_1.jpg" title="비쥬얼 이미지" alt="비쥬얼 이미지"></div>

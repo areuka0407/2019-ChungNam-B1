@@ -26,9 +26,9 @@ Element.prototype.setStyle = function(lists){
     }
 }
 
-location.getValue = function(){
+location.getValue = function(keyword = ""){
     let result = {};
-    let keyword = this.search;
+    keyword = keyword === "" ?  this.search : keyword;
 
     while(/(?<key>[^&?]+)=(?<value>[^&?]+)/.test(keyword)){
         let matches = /(?<key>[^&?]+)=(?<value>[^&?]+)/.exec(keyword)
@@ -41,24 +41,23 @@ location.getValue = function(){
     return result;
 }
 
+
 /**
  * DB
  */
 
 class Database {
-    static loaded = new CustomEvent("loaded");
     constructor({dbname, tableList = [], version = 1} = {}){
         this.root = null;
-        let req = indexedDB.open(dbname, version);
-        req.onupgradeneeded = () => {
-            let db = req.result;
+        this.request = indexedDB.open(dbname, version);
+        this.request.onupgradeneeded = () => {
+            let db = this.request.result;
             tableList.forEach(x => {
-                db.createObjectStore(x, {keyPath: "id", autoIncrement: true});
+                db.createObjectStore(x, {keyPath: "id", autoIncrement: false});
             });
         }
-        req.onsuccess = () => {
-            this.root = req.result;
-            window.dispatchEvent(Database.loaded);
+        this.request.onsuccess = () => {
+            this.root = this.request.result;
         };
     }
 
@@ -72,14 +71,14 @@ class Database {
         });
     }
 
-    edit(table, data){
+    put(table, data){
         let os = this.root.transaction(table, "readwrite").objectStore(table);
         os.put(data);
     }
 
     remove(table, id){
         let os = this.root.transaction(table, "readwrite").objectStore(table);
-        os.remove(id);
+        os.delete(id);
     }
 
     get(table, id){
@@ -105,12 +104,14 @@ class Database {
  */
 
  class Editor {
-     constructor(e){
+     constructor({event, id}){
+        this.edit_id = id;
+        this.$root = event.currentTarget;
+
         // 기존 요소는 삭제
         document.querySelectorAll(".popup").forEach(x => {
             x.remove();
         });
-
 
         this.$elem =    `<div class="popup">
                             <div class="header">
@@ -125,6 +126,7 @@ class Database {
         document.body.append(this.$elem);
      }
 
+     // 로고 수정
      editLogo(){
         this.$body.innerHTML = `<div class="logo-edit">
                                     <div class="form-group">
@@ -134,25 +136,113 @@ class Database {
                                     <div class="form-group">
                                         <label>이미지 선택</label>
                                         <div class="row">
-                                            <img src="./images/logo/logo.png" title="logo" alt="logo" class="logo m-3" width="100">
-                                            <img src="./images/logo/logo2.png" title="logo" alt="logo" class= "logo m-3" width="100">
-                                            <img src="./images/logo/logo3.png" title="logo" alt="logo" class= "logo m-3" width="100">
+                                            <div class="image">
+                                                <img src="./images/logo/logo.png" title="logo" alt="logo" width="100">
+                                            </div>
+                                            <div class="image">
+                                                <img src="./images/logo/logo2.png" title="logo" alt="logo" width="100">
+                                            </div>
+                                            <div class="image">
+                                                <img src="./images/logo/logo3.png" title="logo" alt="logo" width="100">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <button class="btn btn-accept w-100">변경하기</button>
                                     </div>
                                 </div>`;
-        
         this.e_imageActive();
+        this.$body.querySelector(".btn-accept").addEventListener("click", async () => {
+            let files = this.$body.querySelector("#i_logo").files;
+            let url = "";
+            
+            if(files.length > 0){
+                url = await new Promise(res => {
+                    let reader = new FileReader();
+                    reader.onload = () => res(reader.result);
+                    reader.readAsDataURL(files[0]);
+                });
+            }
+            else {
+                let img = this.$body.querySelector(".row > .image.active > img");
+                url = img && img.src;
+            }
+            
+            if(!url) return alert("이미지를 선택하거나 직접 업로드해 주십시오.");
+            
+            let template = await db.get("templates", this.edit_id);
+            let $header = template.list.Header_1.toElemInDiv();   
+            let $footer = template.list.Footer_1.toElemInDiv();
+            $header.querySelector(".logo img").src = $footer.querySelector(".logo img").src = url;
+            
+            template.list.Header_1 = $header.innerHTML;
+            template.list.Footer_1 = $footer.innerHTML;
+
+            await db.put("templates", template);
+
+            app.update();
+            this.$elem.remove();
+        }); 
      }
 
+     // Nav 메뉴 수정
+     async editMenu(){
+        let template = await db.get("templates", this.edit_id);
+        let $header = template.list.Header_1.toElemInDiv();
+        let navItems = $header.querySelectorAll(".n-item > a");
+        
+        let html = `<form class="editMenu">`;
+        for(let i = 1; i <=5; i++){
+            let id = navItems[i-1] && location.getValue(navItems[i-1].href).id;
+            let $options = (await db.getAll("sites")).map(site => `<option value="${site.id}" ${id == site.id ? "selected" : ""}>${site.name}(${site.id})</option>`).reduce((p, c) => p + c, "");
+            html += `<div class="form-group">
+                        <label for="mname_${i}">메뉴 ${i}</label>
+                        <div class="d-flex justify-content-between">
+                            <input type="text" id="mname_${i}" class="form-control w-30" placeholder="메뉴명" value="${navItems[i-1] ? navItems[i-1].innerText : ""}">
+                            <select id="mhref_${i}" class="form-control w-70 ml-2">
+                                <option value>연결 페이지</option>
+                                ${$options}
+                            </select>
+                        </div>
+                    </div>`;
+        }
+        html +=     `<button class="btn btn-accept w-100">변경하기</button>
+                </form>`;
+        this.$body.innerHTML = html;
+        
+        this.$body.querySelector(".editMenu").addEventListener("submit", e => {
+            e.preventDefault();
+            let $groups = Array.from(this.$body.querySelectorAll(".form-group > .d-flex")).map(x => ([x.firstElementChild, x.lastElementChild]));
+            let $nav = $header.querySelector("nav");
+            $nav.innerHTML = "";
+
+            // 메뉴를 입력한게 3개 이상인지 검사
+            if( $groups.map(([$input]) => $input.value).filter(x => x.trim() !== "").length < 3){
+                return alert("메뉴는 3개 이상 존재해야합니다.");
+            }
+            
+            $groups.forEach(([$input, $select]) => {
+                let name = $input.value;
+                let href = "/teaser_builder.html"+ ($select.value ? "?id="+$select.value : "");
+
+                if(name && href){
+                    $nav.innerHTML += `<div class="n-item"><a href="${href}">${name}</a></div>`;
+                }
+            });
+            template.list.Header_1 = $header.innerHTML;
+            db.put("templates", template);
+            app.update();
+            this.$elem.remove();
+        });
+        
+     }
+
+     // 이미지를 클릭할 때 Active 토글을 거는 함수
      e_imageActive() {
-        this.$body.querySelectorAll(".row > img").forEach((img, i, list) => {
+        this.$body.querySelectorAll(".row .image").forEach((img, i, list) => {
             img.addEventListener("click", (e) => {
                 
                 Array.from(list).filter(x => x !== e.currentTarget).forEach(elem => {
-                    console.log(elem);
                     elem.classList.remove("active");
                 });
                 e.currentTarget.classList.toggle("active");
@@ -169,10 +259,10 @@ class Database {
      constructor(){
          this.$root = document.querySelector("#page-manage");
          this.$popup = document.querySelector("#page-edit");
-         this.$popid = this.$popup.querySelector("#site-id");
+         this.$prev_id = this.$popup.querySelector("#prev-id");
 
          this.$inputs = {};
-         Array.from(this.$popup.querySelectorAll("input")).forEach(x => this.$inputs[x.name] = x);
+         Array.from(this.$popup.querySelectorAll(".form-control")).forEach(x => this.$inputs[x.name] = x);
 
          this.event();
          this.update();
@@ -199,13 +289,13 @@ class Database {
                 exist && exist.classList.remove("active");
                 e.currentTarget.classList.add("active");
                 app.view_id = x.id;
-                history.pushState({code: x.code}, null, "/teaser_builder.html?code="+x.code);
+                history.pushState({id: x.id}, null, "/teaser_builder.html?id="+x.id);
                 app.update();
             });
             
             // 페이지 수정 팝업 열기
             elem.querySelector("button").addEventListener("click", e => {
-                 this.$popid.value = x.id;
+                 this.$prev_id.value = x.id;
                  this.$popup.classList.add("active");
 
                  Object.keys(this.$inputs).forEach(key => {
@@ -222,10 +312,24 @@ class Database {
      event(){
          // 새 사이트 생성
          this.$root.querySelector(".btn-add").addEventListener("click", async () => {
-            let site = {name: "신규 페이지", title: "", description: "", keyword: "", code: await this.getUniequeSiteCode()};
-            let lastInsertedId = await db.add("sites", site);
-            let layout = {sid: lastInsertedId, viewList: ["Header_1", "Footer_1"]}
+            let code = await this.getUniequeSiteCode();
+            let site = {name: "신규 페이지", title: "", description: "", keyword: "", id: code};
+            db.add("sites", site);
+
+            let layout = {id: code, viewList: ["Header_1", "Footer_1"]}
             db.add("layouts", layout);
+
+            let t_list = ['Header_1', 'Visual_1', 'Visual_2', 'Contacts_1', 'Contacts_2', 'Gallery&Slide_1', 'Gallery&Slide_2', 'Features_1', 'Features_2', 'Footer_1']; // 템플릿 리스트
+            let template = {id: code, list: {}};
+            await Promise.all(
+                t_list.map(async filename => {
+                    template.list[filename] = await fetch("/template/" + filename).then(x => x.text());
+                })
+            );
+            
+
+            
+            db.add("templates", template);
 
             this.update();
          });
@@ -242,22 +346,43 @@ class Database {
          this.$popup.querySelector("form").addEventListener("submit", async e => {
             e.preventDefault();
 
-            let list = await db.getAll("sites");
+            let prev_id = this.$prev_id.value;
 
-            let code = this.$inputs.code.value;
-            if(/^([a-zA-Z0-9]+)$/.test(code) == false){
+            let id = this.$inputs.id.value;
+            if(/^([a-zA-Z0-9]+)$/.test(id) == false){
                 alert("고유 코드는 [영문/숫자] 로만 작성할 수 있습니다.");
                 return;
             }
 
-            if(list.some(x => x.code === code)){
+            let overlap = await db.get("sites", id);
+            if(overlap && id !== prev_id){
                 alert("동일한 코드가 이미 존재합니다.");
                 return;
             }
 
-            let obj = {};
-            Object.entries(this.$inputs).forEach(([key, input]) => obj[key] = IDBParse(input.value));
-            db.edit("sites", obj);
+            let site = {};
+            Object.entries(this.$inputs).forEach(([key, input]) => site[key] = input.value);
+
+            // 아이디를 변경했을 경우
+            if(id !== prev_id){
+                let [template, layout] = await Promise.all([
+                    db.get("templates", prev_id),
+                    db.get("layouts", prev_id),
+                    db.remove("sites", prev_id),
+                    db.remove("layouts", prev_id), 
+                    db.remove("templates", prev_id)
+                ]);
+
+                template.id = id;
+                layout.id = id;
+
+                db.add("templates", template);
+                db.add("layouts", layout);
+                db.add("sites", site);
+            }
+            // 변경하지 않았을 경우
+            else db.put("sites", site);
+
             this.$popup.classList.remove("active");
             this.update();
          });
@@ -289,15 +414,9 @@ class App {
     }
 
     async init(){   
-        this.layout = await this.loadLayout();
-
         this.pageManage = new PageManage();
 
-        let code = location.getValue().code || null;
-        let sites = await db.getAll("sites");
-        let find = sites.find(x => x.code === code);
-        this.view_id = find ? find.id : null;
-
+        this.view_id = location.getValue().id || null;
         this.$wrap = document.querySelector(".wrap");
 
         this.event();
@@ -307,26 +426,34 @@ class App {
     async update(){
         if(!this.view_id) return;
 
-        let cd = await db.get("sites", this.view_id); // current data
-        let cv = await db.get("layouts", this.view_id); // current view
+        let [cd, cv, ct] = await Promise.all([
+            db.get("sites", this.view_id),
+            db.get("layouts", this.view_id),
+            db.get("templates", this.view_id)
+        ]);
+
+        if(! (cd && cv && ct)) return alert("해당 페이지를 찾을 수 없습니다.");
 
         document.title = cd.title;
         document.head.append( `<meta name="title" content="${cd.title}">`.toElem() );
         document.head.append( `<meta name="description" content="${cd.description}">`.toElem() );
         document.head.append( `<meta name="keyword" content="${cd.keyword}">`.toElem() );
-        
-        
 
         this.$wrap.innerHTML = "";
-        cv.viewList.forEach(item => {
-            this.$wrap.append(this.layout[item]);
+
+        let id = this.view_id;
+        cv.viewList.forEach(key => {
+            let elem = ct.list[key].toElemInDiv();
+            elem.querySelectorAll(".has-context").forEach(x => x.addEventListener("contextmenu", event => this.contextMenu({event, id})));
+            this.$wrap.append(elem);
+            
         });
         
         localStorage.setItem("view_id", this.view_id);
     }
 
     event(){
-        // Active 클래스 도글
+        // Active 클래스 토글
         let needToggleActive = ["#open-manage", "#open-create", "#page-create .tool .name"];
         needToggleActive.forEach(select => {
             document.querySelectorAll(select).forEach((elem, i, list) => {
@@ -338,13 +465,14 @@ class App {
             });
         });
 
+        // 페이지 제작 레이아웃
         document.querySelectorAll("#page-create .preview-list .image").forEach(img => {
             img.addEventListener("click", async e => {
                 if(this.view_id){
                     let filename = e.currentTarget.dataset.name;
                     let item = await db.get("layouts", this.view_id);
                     item.viewList.splice(item.viewList.length-1, 0, filename);
-                    db.edit("layouts", item);
+                    db.put("layouts", item);
                     this.update();
                 }
             });
@@ -362,52 +490,9 @@ class App {
         });
     }
 
-    loadLayout(){
-        const layoutList = ["Header_1", "Contacts_1", "Contacts_2", "Features_1", "Features_2", "Gallery&Slide_1", "Gallery&Slide_2", "Visual_1", "Visual_2", "Footer_1"];
-        return new Promise(async res => {
-            let layout = {};
-
-            let templates = await db.getAll("templates");
-            if(templates.length > 0){
-                templates.forEach(x => {
-                    layout[x.name] = x.html.toElem();
-                    layout[x.name].querySelectorAll(".has-context").forEach(item => {
-                        item.addEventListener("contextmenu", e => {
-                            this.contextMenu(e);
-                        });
-                    });
-                });
-            }
-            else {
-                let layoutArr = await Promise.all(layoutList
-                                .map(async filename => await fetch(`/template/${filename}`)
-                                .then(x => x.text())
-                                .then(x => {
-                                    x = x.toElemInDiv();
-                                    x.querySelectorAll(".has-context").forEach(item => {
-                                        item.addEventListener("contextmenu", e => {
-                                            this.contextMenu(e);
-                                        });
-                                    });
-                                    return x;
-                                })));
-    
-                layoutList.forEach((item, i) => {
-                    layout[item] = layoutArr[i];                
-                });
-                layoutArr.forEach((x, i) => {
-                    db.add("templates", {name: layoutList[i], html: x.outerHTML});
-                });
-            }
-
-
-            res(layout);
-        });
-    }
-
-    contextMenu(e){
-        e.preventDefault();
-        e.stopPropagation();
+    contextMenu({event, id}){
+        event.preventDefault();
+        event.stopPropagation();
 
         let overlap = document.querySelector(".context-menu");
         overlap && overlap.remove();
@@ -417,16 +502,15 @@ class App {
             "editMenu": "메뉴 변경"
         };
 
-        let menuList = e.currentTarget.dataset.context.split(" ");
-        console.log(menuList);
+        let menuList = event.currentTarget.dataset.context.split(" ");
 
-        let {pageX, pageY} = e;
+        let {pageX, pageY} = event;
         let elem = "<div class='context-menu'></div>".toElem();
 
         menuList.forEach((fn, i) => {
             let item = document.createElement("div");
             item.innerText = nameList[fn];
-            item.addEventListener("click", () => (new Editor(e))[fn]());
+            item.addEventListener("click", () => (new Editor({event, id}))[fn]());
             elem.append(item);
         });
 
@@ -444,7 +528,7 @@ window.addEventListener("load", () => {
     const version = 2;
 
     db = new Database({dbname, tableList, version});
-    window.addEventListener("loaded", () => {
+    db.request.addEventListener("success", () => {
         app = new App();
     });
 });
