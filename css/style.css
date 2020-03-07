@@ -245,6 +245,8 @@ header .logo:hover {
     animation: shake ease-in 1s;
 }
 
+header .logo > img { height: 50px }
+
 
 
 header {
@@ -1033,7 +1035,7 @@ footer .copyright { color: #bbb; }
 }
 
 .context-menu > div {
-    padding-left: 20px;
+    padding: 0 20px;
     width: 100%;
     height: 40px;
     line-height: 40px;
@@ -1077,10 +1079,10 @@ footer .copyright { color: #bbb; }
 
 .popup .row > .image {
     cursor: pointer;
-    padding: 20px;
+    width: calc(100% / 4);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 .popup .row > .image.active { border: #586199 5px solid; }
-
+.popup .row > .image img { width: 100%; height: 100%; object-fit: contain; }

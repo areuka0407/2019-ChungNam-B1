@@ -17,6 +17,7 @@ String.prototype.toElem = function(){
 
 String.prototype.toElemInDiv = function(){
     let elem = document.createElement("div");
+    elem.classList.add("topper");
     elem.innerHTML = this;
     return elem;
 }
@@ -104,9 +105,14 @@ class Database {
  */
 
  class Editor {
-     constructor({event, id}){
+     constructor({target, id}){
         this.edit_id = id;
-        this.$root = event.currentTarget;
+        this.$root = target;
+
+
+        this.parent = this.$root.parentElement;
+        while(this.parent && !this.parent.classList.contains("topper")) this.parent = this.parent.parentElement;
+        
 
         // 기존 요소는 삭제
         document.querySelectorAll(".popup").forEach(x => {
@@ -126,62 +132,60 @@ class Database {
         document.body.append(this.$elem);
      }
 
-     // 로고 수정
-     editLogo(){
+     // 이미지 수정
+     async editImage({imagePath, imageLimit = 1, multiple = false}){
+         console.log(multiple);
         this.$body.innerHTML = `<div class="logo-edit">
                                     <div class="form-group">
-                                        <label for="i_logo">업로드</label>
-                                        <input type="file" id="i_logo" class="form-control">
+                                        <label for="i_image">업로드</label>
+                                        <input type="file" id="i_image" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label>이미지 선택</label>
                                         <div class="row">
-                                            <div class="image">
-                                                <img src="./images/logo/logo.png" title="logo" alt="logo" width="100">
-                                            </div>
-                                            <div class="image">
-                                                <img src="./images/logo/logo2.png" title="logo" alt="logo" width="100">
-                                            </div>
-                                            <div class="image">
-                                                <img src="./images/logo/logo3.png" title="logo" alt="logo" width="100">
-                                            </div>
-                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <button class="btn btn-accept w-100">변경하기</button>
                                     </div>
                                 </div>`;
-        this.e_imageActive();
+
+        let $row =  this.$body.querySelector(".row");
+        for(let i = 1; i <= parseInt(imageLimit); i++){
+            let url = imagePath.replace("$", i);
+            $row.append(`<div class="image m-3"><img src="${url}" title="이미지" alt="이미지"></div>`.toElem());
+        }
+        this.$body.querySelectorAll(".row > .image").forEach((x, i, list) => {
+            x.addEventListener("click", () => this.e_imageActive(x, i, list, multiple));
+        });
+
+        this.$body.querySelector("#i_image").addEventListener("change", e => {
+            let file = e.currentTarget.files.length > 0 && e.currentTarget.files[0];
+            if(file){
+                let reader = new FileReader();
+                reader.onload = () =>{ 
+                    let $imgList = this.$body.querySelectorAll(".row .image");
+                    let $image = `<div class="image">
+                                    <img src="${reader.result}" title="logo" alt="logo" width="100">
+                                </div>`.toElem();
+                    $image.addEventListener("click", () => this.e_imageActive($image, $imgList.length, $imgList, multiple));
+                    $row.append($image);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    
         this.$body.querySelector(".btn-accept").addEventListener("click", async () => {
-            let files = this.$body.querySelector("#i_logo").files;
-            let url = "";
-            
-            if(files.length > 0){
-                url = await new Promise(res => {
-                    let reader = new FileReader();
-                    reader.onload = () => res(reader.result);
-                    reader.readAsDataURL(files[0]);
-                });
-            }
-            else {
-                let img = this.$body.querySelector(".row > .image.active > img");
-                url = img && img.src;
-            }
-            
-            if(!url) return alert("이미지를 선택하거나 직접 업로드해 주십시오.");
-            
-            let template = await db.get("templates", this.edit_id);
-            let $header = template.list.Header_1.toElemInDiv();   
-            let $footer = template.list.Footer_1.toElemInDiv();
-            $header.querySelector(".logo img").src = $footer.querySelector(".logo img").src = url;
-            
-            template.list.Header_1 = $header.innerHTML;
-            template.list.Footer_1 = $footer.innerHTML;
+            let selected = Array.from(this.$body.querySelectorAll(".row > .image.active > img"));
+            let sample = this.$root.firstElementChild.outerHTML;
 
-            await db.put("templates", template);
+            this.$root.innerHTML = selected.map(sel => {
+                 return sample.replace(/(<img[^>]*src=")([^'"]+)("[^>]*>)/g, `$1${sel.src}$3`);
+            }).join("");
+            
 
-            app.update();
+            await this.save();
             this.$elem.remove();
+            app.update();
         }); 
      }
 
@@ -237,17 +241,39 @@ class Database {
         
      }
 
+     // 보이기 / 감추기
+     showhide(){
+        if(this.$root.style.visibility === "hidden") {
+            this.$root.classList.remove("showhide-active");
+            this.$root.style.visibility = "visible";
+        }
+        else {
+            this.$root.classList.add("showhide-active");
+            this.$root.style.visibility = "hidden";
+        }
+        
+        this.save();
+        this.$elem.remove();
+     }
+
+     
      // 이미지를 클릭할 때 Active 토글을 거는 함수
-     e_imageActive() {
-        this.$body.querySelectorAll(".row .image").forEach((img, i, list) => {
-            img.addEventListener("click", (e) => {
-                
-                Array.from(list).filter(x => x !== e.currentTarget).forEach(elem => {
-                    elem.classList.remove("active");
-                });
-                e.currentTarget.classList.toggle("active");
-            })
-        });
+     e_imageActive(target, i, list, multiple = false) {
+        if(multiple == false){
+            Array.from(list).filter(x => x !== target).forEach(elem => {
+                elem.classList.remove("active");
+            });
+        }
+        target.classList.toggle("active");
+     }
+
+     /**
+      * IDB에 저장
+      */
+     async save(){
+        let template = await db.get("templates", this.edit_id);
+        template.list[this.parent.dataset.name] = this.parent.innerHTML;
+        await db.put("templates", template);
      }
  }
 
@@ -444,6 +470,7 @@ class App {
         let id = this.view_id;
         cv.viewList.forEach(key => {
             let elem = ct.list[key].toElemInDiv();
+            elem.dataset.name = key;
             elem.querySelectorAll(".has-context").forEach(x => x.addEventListener("contextmenu", event => this.contextMenu({event, id})));
             this.$wrap.append(elem);
             
@@ -494,30 +521,56 @@ class App {
         event.preventDefault();
         event.stopPropagation();
 
+        let target = event.currentTarget;
         let overlap = document.querySelector(".context-menu");
         overlap && overlap.remove();
 
+        let imageAction = ["editLogo", "editSlide"];
         let nameList = {
             "editLogo": "로고 변경",
-            "editMenu": "메뉴 변경"
+            "editMenu": "메뉴 변경",
+            "showhide": "보이기/감추기",
+            "editSlide": "슬라이드 이미지 변경",
+            "textStyle": "텍스트 색상/크기 변경",
+            "editLink": "링크 변경"
         };
 
-        let menuList = event.currentTarget.dataset.context.split(" ");
+        let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
+        let hideItems = target.querySelectorAll(".showhide-active");
 
-        let {pageX, pageY} = event;
+        let {clientX, clientY} = event;
         let elem = "<div class='context-menu'></div>".toElem();
 
+        
         menuList.forEach((fn, i) => {
             let item = document.createElement("div");
             item.innerText = nameList[fn];
-            item.addEventListener("click", () => (new Editor({event, id}))[fn]());
+            item.addEventListener("click", e => {
+                let editor = new Editor({target, id});
+                ! imageAction.includes(fn) ? editor[fn]() : editor.editImage({
+                    imagePath: target.dataset.path,
+                    imageLimit: parseInt(target.dataset.limit),
+                    multiple: target.dataset.multiple
+                });
+            });
             elem.append(item);
         });
 
-        elem.style.left = pageX + "px";
-        elem.style.top = pageY + "px"
+        hideItems.forEach(hi => {
+            let item = document.createElement("div");
+            item.innerText = hi.dataset.name + " 보이기";
+            item.addEventListener("click", e => {
+                let editor = new Editor({id, target: hi});
+                editor.showhide();
+            });
+            elem.append(item);
+        });
 
-        document.body.append(elem);
+        elem.style.left = clientX + "px";
+        elem.style.top = clientY + "px"
+
+        if(menuList.length + hideItems.length > 0)
+            document.body.append(elem);
 
     }
 }
