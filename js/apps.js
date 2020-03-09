@@ -290,6 +290,29 @@ class Database {
         this.$elem.remove();
      }
 
+     // 텍스트 수정
+     editText(){
+        let contents = this.$root.innerText;
+        this.$body.innerHTML = `<form class="editText">
+                                    <div class="form-group">
+                                        <label for="text-contents">텍스트</label>
+                                        <textarea id="text-contents" class="form-control" rows="5">${contents}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-accept w-100 mt-5">변경하기</button>
+                                    </div>
+                                </form>`;
+        this.$body.querySelector(".editText").addEventListener("submit", e => {
+            e.preventDefault();
+            this.$root.innerText = this.$body.querySelector("#text-contents").value;
+            this.save().then(() => {
+                app.update();
+                this.$elem.remove();
+            });
+        });
+        
+     }
+
      // 텍스트 스타일 변경
      textStyle(){
         let textColor = $(this.$root).css("color");
@@ -319,6 +342,27 @@ class Database {
                 app.update();
             });
         });
+     }
+
+     // 링크 수정
+     editLink(){
+        this.$body.innerHTML = `<form class="editLink">
+                                    <div class="form-group">
+                                        <label for="linked-url">연결할 URL</label>
+                                        <input type="url" id="linked-url" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-accept w-100 mt-5">변경하기</button>
+                                    </div>
+                                </form>`;
+        this.$body.querySelector(".editLink").addEventListener("submit", e => {
+            e.preventDefault();
+            this.$root.href = this.$body.querySelector("#linked-url").value;
+            this.save().then(() => {
+                this.$elem.remove();
+                app.update();
+            });
+        }); 
      }
 
      
@@ -688,7 +732,8 @@ class App {
             "showhide": "보이기/감추기",
             "editSlide": "슬라이드 이미지 변경",
             "textStyle": "텍스트 색상/크기 변경",
-            "editLink": "링크 변경"
+            "editText": "텍스트 수정",
+            "editLink": "링크 변경",
         };
 
         let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
