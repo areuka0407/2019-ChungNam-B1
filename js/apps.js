@@ -28,7 +28,7 @@ String.prototype.rgbtohex = function(){
 
     for(let key in matches.groups){
         let val = parseInt(matches.groups[key]);
-        result += val.toHex();
+        result += val == 0 ? "0" : val.toHex();
     }
 
     return "#" + result;
@@ -85,14 +85,18 @@ location.getValue = function(keyword = ""){
  */
 
 class Database {
-    constructor({dbname, tableList = [], version = 1} = {}){
+    constructor({dbname, version = 1} = {}){
         this.root = null;
         this.request = indexedDB.open(dbname, version);
         this.request.onupgradeneeded = () => {
             let db = this.request.result;
-            tableList.forEach(x => {
-                db.createObjectStore(x, {keyPath: "id", autoIncrement: false});
-            });
+
+            // Code 로 관리
+            db.createObjectStore("sites", {keyPath: "code", autoIncrement: false});
+            db.createObjectStore("layouts", {keyPath: "code", autoIncrement: false});
+
+            // id 로 관리
+            db.createObjectStore("templates", {keyPath: "id", autoIncrement: true});
         }
         this.request.onsuccess = () => {
             this.root = this.request.result;
@@ -142,8 +146,8 @@ class Database {
  */
 
  class Editor {
-     constructor({target, id}){
-        this.edit_id = id;
+     constructor({target, code}){
+        this.editCode = code;
         this.$root = target;
 
 
@@ -174,7 +178,7 @@ class Database {
 
      // 이미지 수정 :: img 태그에 직접 걸지 말고, 감싸고 있는 태그에 적용할 것!
      async editImage({imagePath, imageLimit = 1, multiple = false}){
-         
+        this.sample = this.$root.children[0].classList.contains("isClone") ? this.$root.children[1].outerHTML : this.$root.children[0];
         this.$body.innerHTML = `<div class="logo-edit">
                                     <div class="form-group">
                                         <label for="i_image">업로드</label>
@@ -216,16 +220,17 @@ class Database {
             }
         });
     
-        this.$body.querySelector(".btn-accept").addEventListener("click", async () => {
-            await this.save();
-            this.$elem.remove();
-            app.update();
+        this.$body.querySelector(".btn-accept").addEventListener("click", () => {
+            this.save().then(x => {
+                this.$elem.remove();
+                app.update();
+            });
         }); 
      }
 
      // Nav 메뉴 수정
      async editMenu(){
-        let template = await db.get("templates", this.edit_id);
+        let template = await db.get("templates", this.editCode);
         let $header = template.list.Header_1.toElemInDiv();
         let navItems = $header.querySelectorAll(".n-item > a");
         
@@ -302,9 +307,11 @@ class Database {
                                         <button class="btn btn-accept w-100 mt-5">변경하기</button>
                                     </div>
                                 </form>`;
+        this.$body.querySelector("#text-contents").addEventListener("input", e => {
+            this.$root.innerText = e.target.value;
+        });
         this.$body.querySelector(".editText").addEventListener("submit", e => {
             e.preventDefault();
-            this.$root.innerText = this.$body.querySelector("#text-contents").value;
             this.save().then(() => {
                 app.update();
                 this.$elem.remove();
@@ -315,27 +322,33 @@ class Database {
 
      // 텍스트 스타일 변경
      textStyle(){
-        let textColor = $(this.$root).css("color");
+        let textColor = getComputedStyle(this.$root).getPropertyValue("color");
         let textSize = parseInt($(this.$root).css("font-size"));
         this.$body.innerHTML = `<form class="textStyle">
                                     <div class="form-group">
                                         <label for="text-color">텍스트 색상</label>
-                                        <input type="color" id="text-color" name="color" value=${textColor.rgbtohex()}>
+                                        <input type="text" id="text-color" name="color" class="form-control" value=${textColor.rgbtohex()} placeholder="hex, rgb, naming 등의 색상 표현식을 작성하세요">
                                     </div>
                                     <div class="form-group">
                                         <label for="text-size">텍스트 크기</label>
-                                        <input type="number" id="text-size" name="fontSize" style="width: 50px" value="${textSize}">
-                                        <span>px</span>
+                                        <div class="d-flex">
+                                            <input type="number" id="text-size" name="fontSize" class="form-control p-1" style="width: 50px" value="${textSize}">
+                                            <span>px</span>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <button class="btn btn-accept w-100 mt-5">변경하기</button>
                                     </div>
                                 </form>`;
+        this.$body.querySelector("#text-color").addEventListener("input", e => {
+            this.$root.style.color = e.target.value;
+        });
+        this.$body.querySelector("#text-size").addEventListener("input", e => {
+            this.$root.style.fontSize = this.$body.querySelector("#text-size").value + "px";
+        });
+
         this.$body.querySelector("form.textStyle").addEventListener("submit", e => {
             e.preventDefault();
-
-            this.$root.style.fontSize = this.$body.querySelector("#text-size").value + "px";
-            this.$root.style.color = this.$body.querySelector("#text-color").value;
 
             this.save().then(() => {
                 this.$elem.remove();
@@ -346,18 +359,21 @@ class Database {
 
      // 링크 수정
      editLink(){
+        let link = this.$root.href;
         this.$body.innerHTML = `<form class="editLink">
                                     <div class="form-group">
                                         <label for="linked-url">연결할 URL</label>
-                                        <input type="url" id="linked-url" class="form-control">
+                                        <input type="url" id="linked-url" class="form-control" value="${link}">
                                     </div>
                                     <div class="form-group">
                                         <button class="btn btn-accept w-100 mt-5">변경하기</button>
                                     </div>
                                 </form>`;
+        this.$body.querySelector("#linked-url").addEventListener("input", e => {
+            this.$root.href = e.target.value;
+        });
         this.$body.querySelector(".editLink").addEventListener("submit", e => {
             e.preventDefault();
-            this.$root.href = this.$body.querySelector("#linked-url").value;
             this.save().then(() => {
                 this.$elem.remove();
                 app.update();
@@ -377,10 +393,9 @@ class Database {
 
 
         let selected = Array.from(this.$body.querySelectorAll(".row .image.active > img"));
-        let sample = this.$root.firstElementChild.outerHTML;
 
         this.$root.innerHTML = selected.map(sel => {
-            return sample.replace(/(<img[^>]*src=")([^'"]+)("[^>]*>)/g, `$1${sel.src}$3`);
+            return this.sample.replace(/(<img[^>]*src=")([^'"]+)("[^>]*>)/g, `$1${sel.src}$3`);
         }).join("");
 
 
@@ -392,8 +407,8 @@ class Database {
       * IDB에 저장
       */
      async save(){
-        let template = await db.get("templates", this.edit_id);
-        template.list[this.parent.dataset.name] = this.parent.innerHTML;
+        let template = await db.get("templates", parseInt(this.parent.dataset.id));
+        template.contents = this.parent.innerHTML;
         await db.put("templates", template);
      }
  }
@@ -420,10 +435,10 @@ class Database {
          let $tbody = this.$root.querySelector("table tbody");
 
          $tbody.innerHTML = "";
-         sites.forEach(x => {
+         sites.sort((a, b) => a.created_at - b.created_at).forEach(x => {
              let elem = document.createElement("tr");
              elem.dataset.id = x.id;
-             app.view_id == x.id && elem.classList.add("active");
+             app.viewCode == x.id && elem.classList.add("active");
              elem.innerHTML =  `<td>${x.name}</td>
                                 <td>${x.title}</td>
                                 <td colspan="2">${x.description}</td>
@@ -435,8 +450,8 @@ class Database {
                 let exist = $tbody.querySelector("tr.active");
                 exist && exist.classList.remove("active");
                 e.currentTarget.classList.add("active");
-                app.view_id = x.id;
-                history.pushState({id: x.id}, null, "/teaser_builder.html?id="+x.id);
+                app.viewCode = x.code;
+                history.pushState({code: x.code}, null, "/teaser_builder.html?code="+x.code);
                 app.update();
             });
             
@@ -460,23 +475,21 @@ class Database {
          // 새 사이트 생성
          this.$root.querySelector(".btn-add").addEventListener("click", async () => {
             let code = await this.getUniequeSiteCode();
-            let site = {name: "신규 페이지", title: "", description: "", keyword: "", id: code};
+            let site = {name: "신규 페이지", title: "", description: "", keyword: "", code, created_at: new Date().toTimeString()};
             db.add("sites", site);
 
-            let layout = {id: code, viewList: ["Header_1", "Footer_1"]}
-            db.add("layouts", layout);
-
-            let t_list = ['Header_1', 'Visual_1', 'Visual_2', 'Contacts_1', 'Contacts_2', 'Gallery&Slide_1', 'Gallery&Slide_2', 'Features_1', 'Features_2', 'Footer_1']; // 템플릿 리스트
-            let template = {id: code, list: {}};
-            await Promise.all(
-                t_list.map(async filename => {
-                    template.list[filename] = await fetch("/template/" + filename).then(x => x.text());
-                })
+            let t_list = ['Header_1', 'Footer_1']; // 템플릿 리스트
+            let templates = await Promise.all(
+                t_list.map(filename => new Promise(res => {
+                    fetch("/template/" + filename)
+                    .then(x => x.text())
+                    .then(data => db.add("templates", {name: filename, contents: data}))
+                    .then(id => res(id));
+                }))
             );
-            
 
-            
-            db.add("templates", template);
+            let layout = {code, viewList: templates};
+            db.add("layouts", layout);
 
             this.update();
          });
@@ -563,7 +576,7 @@ class App {
     async init(){   
         this.pageManage = new PageManage();
 
-        this.view_id = location.getValue().id || null;
+        this.viewCode = location.getValue().code || null;
         this.$wrap = document.querySelector(".wrap");
 
         this.event();
@@ -571,35 +584,62 @@ class App {
     }
 
     async update(){
-        if(!this.view_id) return;
+        if(!this.viewCode) return;
 
-        let [cd, cv, ct] = await Promise.all([
-            db.get("sites", this.view_id),
-            db.get("layouts", this.view_id),
-            db.get("templates", this.view_id)
+        let [site, layout] = await Promise.all([
+            db.get("sites", this.viewCode),
+            db.get("layouts", this.viewCode),
         ]);
 
-        if(! (cd && cv && ct)) return alert("해당 페이지를 찾을 수 없습니다.");
+        if(! (site && layout)) return alert("해당 페이지를 찾을 수 없습니다.");
 
-        document.title = cd.title;
-        document.head.append( `<meta name="title" content="${cd.title}">`.toElem() );
-        document.head.append( `<meta name="description" content="${cd.description}">`.toElem() );
-        document.head.append( `<meta name="keyword" content="${cd.keyword}">`.toElem() );
+        document.title = site.title;
+        document.head.append( `<meta name="title" content="${site.title}">`.toElem() );
+        document.head.append( `<meta name="description" content="${site.description}">`.toElem() );
+        document.head.append( `<meta name="keyword" content="${site.keyword}">`.toElem() );
 
         this.$wrap.innerHTML = "";
 
-        let id = this.view_id;
-        cv.viewList.forEach(key => {
-            let elem = ct.list[key].toElemInDiv();
-            elem.dataset.name = key;
-            elem.querySelectorAll(".has-context").forEach(x => x.addEventListener("contextmenu", event => this.contextMenu({event, id})));
-            this.$wrap.append(elem);
-            
-            if(key === "Visual_1") this.makeSlide1(elem);
-            if(key === "Visual_2") this.makeSlide2(elem);
-        });
+        let code = this.viewCode;
+        await Promise.all(
+            layout.viewList.map(async (id, idx) => {
+                let template = await db.get("templates", id);
+                let elem = template.contents.toElemInDiv();
+                elem.dataset.id = template.id;
+                elem.dataset.name = template.name;
+                elem.querySelectorAll(".has-context").forEach(x => x.addEventListener("contextmenu", event => this.contextMenu({event, code})));
+
+                let exception = ["Header_1", "Footer_1"];
+                exception.includes(template.name) == false && elem.addEventListener("contextmenu", e => {
+                                                            e.preventDefault();
+
+                                                            let overlap = document.querySelector(".context-menu");
+                                                            overlap && overlap.remove();
+
+                                                            let $menu = document.createElement("div");
+                                                            $menu.classList.add("context-menu");
+                                                            $menu.innerHTML = "<div>레이아웃 삭제</div>";
+                                                            $menu.firstElementChild.addEventListener("click", e => {
+                                                                e.preventDefault();
+                                                                if(!confirm("정말 삭제하시겠습니까?")) return;
+                                                                layout.viewList.splice(idx, 1);
+                                                                db.put("layouts", layout);
+                                                                this.update();
+                                                            });
+                                                            $menu.style.left = e.clientX + "px";
+                                                            $menu.style.top = e.clientY + "px";
+                                                            
+                                                            document.body.append($menu);
+                                                        });
+
+                this.$wrap.append(elem);
+
+                if(template.name === "Visual_1") this.makeSlide1(elem);
+                if(template.name === "Visual_2") this.makeSlide2(elem);
+            })
+        )
         
-        localStorage.setItem("view_id", this.view_id);
+        localStorage.setItem("view_id", this.viewCode);
     }
 
     event(){
@@ -618,11 +658,18 @@ class App {
         // 페이지 제작 레이아웃
         document.querySelectorAll("#page-create .preview-list .image").forEach(img => {
             img.addEventListener("click", async e => {
-                if(this.view_id){
-                    let filename = e.currentTarget.dataset.name;
-                    let item = await db.get("layouts", this.view_id);
-                    item.viewList.splice(item.viewList.length-1, 0, filename);
-                    db.put("layouts", item);
+                if(this.viewCode){
+                    let name = e.currentTarget.dataset.name;
+
+                    // template 다운로드
+                    let contents = await fetch("/template/"+name).then(x => x.text());
+                    let id = await db.add("templates", {name, contents});
+
+                    // layout 배열에 추가
+                    let layout = await db.get("layouts", this.viewCode);
+                    layout.viewList.splice(layout.viewList.length-1, 0, id);
+                    db.put("layouts", layout);
+
                     this.update();
                 }
             });
@@ -643,24 +690,30 @@ class App {
     makeSlide1(elem){
         elem.animated && clearInterval(elem.animated);
 
+        elem.querySelectorAll(".isClone").forEach(x => x.remove());
+
         let cs = 0; // current slide
         let container = elem.querySelector(".images > div");
         let images = elem.querySelectorAll(".image"); // 기존 이미지 배열
 
+        $(container).css("top", "0");
         images.forEach((x, i) => {
             x.dataset.no = i;
         });
         
-        if(images.length < 2) {
-            $(container).css("top", "0");
-            return;
-        }
+        if(images.length < 2) return; 
+        
 
-        let lastClone = images[images.length - 1].cloneNode(true);
+        let lastClone = images[images.length - 1].outerHTML.toElem();
+        lastClone.classList.add("isClone");
         container.prepend(lastClone);
-        let firstClone = images[0].cloneNode(true);
+
+        let firstClone = images[0].outerHTML.toElem();
+        firstClone.classList.add("isClone");
         container.append(firstClone);
-        let secondClone = images[1].cloneNode(true);
+
+        let secondClone = images[1].outerHTML.toElem();
+        secondClone.classList.add("isClone");
         container.append(secondClone);
 
 
@@ -717,7 +770,7 @@ class App {
         }, 3000);
     }
 
-    contextMenu({event, id}){
+    contextMenu({event, code}){
         event.preventDefault();
         event.stopPropagation();
 
@@ -725,7 +778,7 @@ class App {
         let overlap = document.querySelector(".context-menu");
         overlap && overlap.remove();
 
-        let imageAction = ["editLogo", "editSlide"];
+        let imageAction = ["editLogo", "editSlide", "editIcon"];
         let nameList = {
             "editLogo": "로고 변경",
             "editMenu": "메뉴 변경",
@@ -734,6 +787,7 @@ class App {
             "textStyle": "텍스트 색상/크기 변경",
             "editText": "텍스트 수정",
             "editLink": "링크 변경",
+            "editIcon": "아이콘 변경"
         };
 
         let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
@@ -747,7 +801,7 @@ class App {
             let item = document.createElement("div");
             item.innerText = nameList[fn];
             item.addEventListener("click", e => {
-                let editor = new Editor({target, id});
+                let editor = new Editor({target, code});
                 ! imageAction.includes(fn) ? editor[fn]() : editor.editImage({
                     imagePath: target.dataset.path,
                     imageLimit: parseInt(target.dataset.limit),
@@ -778,10 +832,9 @@ class App {
 
 window.addEventListener("load", () => {
     const dbname = "BMIF";
-    const tableList = ["sites", "layouts", "templates"];
     const version = 2;
 
-    db = new Database({dbname, tableList, version});
+    db = new Database({dbname, version});
     db.request.addEventListener("success", () => {
         app = new App();
     });

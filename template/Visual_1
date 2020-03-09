@@ -1,8 +1,8 @@
 <div id="visual-1">
     <div class="contents has-context">
-        <h1 class="has-context" data-name="타이틀" data-context="showhide textStyle editText">부산국제매직페스티벌</h1>
-        <p data-name="요약 설명" lang="en" class="has-context" data-context="showhide textStyle editText">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque maxime error fugiat, non, accusantium atque. Dolores velit, reiciendis repellendus odit illo unde. Qui error labore perferendis quos veritatis, voluptatibus itaque.</p>
-        <a data-name="바로가기" href="#" class="btn has-context" lang="en" data-context="showhide textStyle editLink editText">Learn more</a>
+        <h1 class="has-context" data-name="타이틀" data-context="textStyle editText" data-hidable="hidable">부산국제매직페스티벌</h1>
+        <p data-name="요약 설명" lang="en" class="has-context" data-context="textStyle editText" data-hidable="hidable">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque maxime error fugiat, non, accusantium atque. Dolores velit, reiciendis repellendus odit illo unde. Qui error labore perferendis quos veritatis, voluptatibus itaque.</p>
+        <a data-name="바로가기" href="#" class="btn has-context" lang="en" data-context="textStyle editLink editText" data-hidable="hidable">Learn more</a>
     </div>
     <div class="images">
         <div class="has-context" data-context="editSlide" data-path="/template_images/visual/$.jpg" data-limit="7" data-multiple="multiple">
