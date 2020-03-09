@@ -19,7 +19,7 @@
                         <div class="title has-context" data-context="editText textStyle" data-name="타이틀" data-hidable="hidable">Lorem ipsum1</div>
                         <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
                     </div>
-                    <img src="./images/gallery/1.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                    <img id="combined-1" src="./images/gallery/1.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
             <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-2" lang="en">
@@ -29,7 +29,7 @@
                         <div class="title has-context" data-context="editText textStyle" data-name="타이틀" data-hidable="hidable">Lorem ipsum2</div>
                         <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
                     </div>
-                    <img src="./images/gallery/2.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                    <img id="combined-2" src="./images/gallery/2.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
             <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-3" lang="en">
@@ -39,7 +39,7 @@
                         <div class="title has-context" data-context="editText textStyle" data-name="타이틀" data-hidable="hidable">Lorem ipsum3</div>
                         <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
                     </div>
-                    <img src="./images/gallery/3.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                    <img id="combined-3" src="./images/gallery/3.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
             <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-4" lang="en">
@@ -49,7 +49,7 @@
                         <div class="title has-context" data-context="editText textStyle" data-name="타이틀" data-hidable="hidable">Lorem ipsum4</div>
                         <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
                     </div>
-                    <img src="./images/gallery/4.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                    <img id="combined-4" src="./images/gallery/4.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
             <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-5" lang="en">
@@ -59,7 +59,7 @@
                         <div class="title has-context" data-context="editText textStyle" data-name="타이틀" data-hidable="hidable">Lorem ipsum5</div>
                         <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
                     </div>
-                    <img src="./images/gallery/5.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                    <img id="combined-5" src="./images/gallery/5.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
             <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-6" lang="en">
@@ -69,28 +69,28 @@
                         <div class="title has-context" data-context="editText textStyle" data-name="타이틀" data-hidable="hidable">Lorem ipsum6</div>
                         <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
                     </div>
-                    <img src="./images/gallery/6.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                    <img id="combined-6" src="./images/gallery/6.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
         </div> 
         <div class="sub-viewer">
             <div class="cursor"></div>
-            <div class="image">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combined-1">
                 <img id="combine-1" src="./images/gallery/1.jpg" alt="갤러리 이미지" title="갤러리 이미지">
             </div>
-            <div class="image">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combined-2">
                 <img id="combine-2" src="./images/gallery/2.jpg" alt="갤러리 이미지" title="갤러리 이미지">
             </div>
-            <div class="image">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combined-3">
                 <img id="combine-3" src="./images/gallery/3.jpg" alt="갤러리 이미지" title="갤러리 이미지">
             </div>
-            <div class="image">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combined-4">
                 <img id="combine-4" src="./images/gallery/4.jpg" alt="갤러리 이미지" title="갤러리 이미지">
             </div>
-            <div class="image">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combined-5">
                 <img id="combine-5" src="./images/gallery/5.jpg" alt="갤러리 이미지" title="갤러리 이미지">
             </div>
-            <div class="image">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combined-6">
                 <img id="combine-6" src="./images/gallery/6.jpg" alt="갤러리 이미지" title="갤러리 이미지">
             </div>
         </div>
