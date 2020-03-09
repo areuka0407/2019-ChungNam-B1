@@ -151,9 +151,7 @@ class Database {
         this.$root = target;
 
 
-        this.parent = this.$root.parentElement;
-        while(this.parent && !this.parent.classList.contains("topper")) this.parent = this.parent.parentElement;
-        
+        this.parent = $(this.$root).closest(".topper")[0];
 
         // 기존 요소는 삭제
         document.querySelectorAll(".popup").forEach(x => {
@@ -178,7 +176,7 @@ class Database {
 
      // 이미지 수정 :: img 태그에 직접 걸지 말고, 감싸고 있는 태그에 적용할 것!
      async editImage({imagePath, imageLimit = 1, multiple = false}){
-        this.sample = this.$root.children[0].classList.contains("isClone") ? this.$root.children[1].outerHTML : this.$root.children[0];
+        this.sample = this.$root.children[0].classList.contains("isClone") ? this.$root.children[1].outerHTML : this.$root.children[0].outerHTML;
         this.$body.innerHTML = `<div class="logo-edit">
                                     <div class="form-group">
                                         <label for="i_image">업로드</label>
@@ -186,7 +184,7 @@ class Database {
                                     </div>
                                     <div class="form-group">
                                         <label>이미지 선택</label>
-                                        <div class="row">
+                                        <div class="row"></div>
                                     </div>
                                     <div class="form-group">
                                         <button class="btn btn-accept w-100">변경하기</button>
@@ -221,23 +219,24 @@ class Database {
         });
     
         this.$body.querySelector(".btn-accept").addEventListener("click", () => {
-            this.save().then(x => {
-                this.$elem.remove();
-                app.update();
-            });
+            if(this.$body.querySelector(".row > .image.active")) {
+                this.save().then(x => {
+                    this.$elem.remove();
+                    app.update();
+                });
+            }
+            else this.$elem.remove();
         }); 
      }
 
      // Nav 메뉴 수정
      async editMenu(){
-        let template = await db.get("templates", this.editCode);
-        let $header = template.list.Header_1.toElemInDiv();
-        let navItems = $header.querySelectorAll(".n-item > a");
+        let navItems = this.parent.querySelectorAll(".n-item > a");
         
         let html = `<form class="editMenu">`;
         for(let i = 1; i <=5; i++){
-            let id = navItems[i-1] && location.getValue(navItems[i-1].href).id;
-            let $options = (await db.getAll("sites")).map(site => `<option value="${site.id}" ${id == site.id ? "selected" : ""}>${site.name}(${site.id})</option>`).reduce((p, c) => p + c, "");
+            let code = navItems[i-1] && location.getValue(navItems[i-1].href).code;
+            let $options = (await db.getAll("sites")).map(site => `<option value="${site.code}" ${code == site.code ? "selected" : ""}>${site.name}(${site.code})</option>`).reduce((p, c) => p + c, "");
             html += `<div class="form-group">
                         <label for="mname_${i}">메뉴 ${i}</label>
                         <div class="d-flex justify-content-between">
@@ -253,46 +252,37 @@ class Database {
                 </form>`;
         this.$body.innerHTML = html;
         
-        this.$body.querySelector(".editMenu").addEventListener("submit", e => {
-            e.preventDefault();
+        const update = () => {
             let $groups = Array.from(this.$body.querySelectorAll(".form-group > .d-flex")).map(x => ([x.firstElementChild, x.lastElementChild]));
-            let $nav = $header.querySelector("nav");
+            let $nav = this.parent.querySelector("nav");
             $nav.innerHTML = "";
-
-            // 메뉴를 입력한게 3개 이상인지 검사
-            if( $groups.map(([$input]) => $input.value).filter(x => x.trim() !== "").length < 3){
-                return alert("메뉴는 3개 이상 존재해야합니다.");
-            }
-            
             $groups.forEach(([$input, $select]) => {
                 let name = $input.value;
-                let href = "/teaser_builder.html"+ ($select.value ? "?id="+$select.value : "");
+                let href = "/teaser_builder.html"+ ($select.value ? "?code="+$select.value : "");
 
                 if(name && href){
                     $nav.innerHTML += `<div class="n-item"><a href="${href}">${name}</a></div>`;
                 }
             });
-            template.list.Header_1 = $header.innerHTML;
-            db.put("templates", template);
-            app.update();
+        };
+
+        this.$body.querySelectorAll("input, select").forEach(($input, i) => {
+            $input.addEventListener("input", e => update());
+        });
+
+        this.$body.querySelector(".editMenu").addEventListener("submit", e => {
+            e.preventDefault();
+
+            // 메뉴를 입력한게 3개 이상인지 검사
+            let $groups = Array.from(this.$body.querySelectorAll(".form-group > .d-flex")).map(x => ([x.firstElementChild, x.lastElementChild]));
+            if( $groups.map(([$input]) => $input.value).filter(x => x.trim() !== "").length < 3){
+                return alert("메뉴는 3개 이상 존재해야합니다.");
+            }
+            
+            this.save();
             this.$elem.remove();
         });
         
-     }
-
-     // 보이기 / 감추기
-     showhide(){
-        if(this.$root.style.visibility === "hidden") {
-            this.$root.classList.remove("showhide-active");
-            this.$root.style.visibility = "visible";
-        }
-        else {
-            this.$root.classList.add("showhide-active");
-            this.$root.style.visibility = "hidden";
-        }
-        
-        this.save();
-        this.$elem.remove();
      }
 
      // 텍스트 수정
@@ -313,7 +303,6 @@ class Database {
         this.$body.querySelector(".editText").addEventListener("submit", e => {
             e.preventDefault();
             this.save().then(() => {
-                app.update();
                 this.$elem.remove();
             });
         });
@@ -352,7 +341,6 @@ class Database {
 
             this.save().then(() => {
                 this.$elem.remove();
-                app.update();
             });
         });
      }
@@ -376,11 +364,40 @@ class Database {
             e.preventDefault();
             this.save().then(() => {
                 this.$elem.remove();
-                app.update();
             });
         }); 
      }
 
+     // 배경색 수정
+     editBackground(){
+        this.$body.innerHTML = `<form id="edit-background">
+                                    <div class="form-group">
+                                        <label for="color-picker">색상표</label>
+                                        <select id="color-picker" class="form-control" multiple>
+                                            <option value="#eb3636" style="background-color: #eb3636">RED</option>
+                                            <option value="#ebc136" style="background-color: #ebc136">YELLOW</option>
+                                            <option value="#33d63b" style="background-color: #33d63b">GREEN</option>
+                                            <option value="#33d6ce" style="background-color: #33d6ce">CYAN</option>
+                                            <option value="#337ad6" style="background-color: #337ad6">BLUE</option>
+                                            <option value="#d633bb" style="background-color: #d633bb">MAGENTA</option>
+                                            <option value="#404040" style="background-color: #404040">BLACK</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-accept w-100">변경하기</button>
+                                    </div>
+                                </form>`;
+        this.$body.querySelector("#color-picker").addEventListener("input", e => {
+            $(this.$root).attr("style", "--color: " + e.target.value);
+        });
+        this.$body.querySelector("form").addEventListener("submit", e => {
+            e.preventDefault();
+            this.save().then(() => {
+                this.$elem.remove();
+            });
+        });
+        
+     }
      
      // 이미지를 클릭할 때 Active 토글을 거는 함수
      e_imageActive(target, i, list, multiple = false) {
@@ -398,9 +415,13 @@ class Database {
             return this.sample.replace(/(<img[^>]*src=")([^'"]+)("[^>]*>)/g, `$1${sel.src}$3`);
         }).join("");
 
+        // 함께 수정할 이미지가 있으면 같이 수정한다
+        let combined = this.$root.dataset.combine && document.querySelector(this.$root.dataset.combine);
+        combined && $(combined).attr("src", selected[0].src);
 
-        if(this.parent.dataset.name === "Visual_1") app.makeSlide1(this.parent)
-        else if(this.parent.dataset.name === "Visual_2") app.makeSlide2(this.parent)
+        // HTML을 통째로 갈아끼우므로, 이벤트 재설정이 필요하다.
+        let fn = this.parent.dataset.name.toLowerCase();
+        app[fn] && app[fn](this.parent);
      }
 
      /**
@@ -421,7 +442,7 @@ class Database {
      constructor(){
          this.$root = document.querySelector("#page-manage");
          this.$popup = document.querySelector("#page-edit");
-         this.$prev_id = this.$popup.querySelector("#prev-id");
+         this.$prevCode = this.$popup.querySelector("#prev-code");
 
          this.$inputs = {};
          Array.from(this.$popup.querySelectorAll(".form-control")).forEach(x => this.$inputs[x.name] = x);
@@ -457,7 +478,7 @@ class Database {
             
             // 페이지 수정 팝업 열기
             elem.querySelector("button").addEventListener("click", e => {
-                 this.$prev_id.value = x.id;
+                 this.$prevCode.value = x.code;
                  this.$popup.classList.add("active");
 
                  Object.keys(this.$inputs).forEach(key => {
@@ -506,16 +527,16 @@ class Database {
          this.$popup.querySelector("form").addEventListener("submit", async e => {
             e.preventDefault();
 
-            let prev_id = this.$prev_id.value;
+            let prevCode = this.$prevCode.value;
 
-            let id = this.$inputs.id.value;
-            if(/^([a-zA-Z0-9]+)$/.test(id) == false){
+            let code = this.$inputs.code.value;
+            if(/^([a-zA-Z0-9]+)$/.test(code) == false){
                 alert("고유 코드는 [영문/숫자] 로만 작성할 수 있습니다.");
                 return;
             }
 
-            let overlap = await db.get("sites", id);
-            if(overlap && id !== prev_id){
+            let overlap = await db.get("sites", code);
+            if(overlap && code !== prevCode){
                 alert("동일한 코드가 이미 존재합니다.");
                 return;
             }
@@ -524,19 +545,15 @@ class Database {
             Object.entries(this.$inputs).forEach(([key, input]) => site[key] = input.value);
 
             // 아이디를 변경했을 경우
-            if(id !== prev_id){
-                let [template, layout] = await Promise.all([
-                    db.get("templates", prev_id),
-                    db.get("layouts", prev_id),
-                    db.remove("sites", prev_id),
-                    db.remove("layouts", prev_id), 
-                    db.remove("templates", prev_id)
+            if(code !== prevCode){
+                let [layout] = await Promise.all([
+                    db.get("layouts", prevCode),
+                    db.remove("sites", prevCode),
+                    db.remove("layouts", prevCode), 
                 ]);
 
-                template.id = id;
-                layout.id = id;
+                layout.code = code;
 
-                db.add("templates", template);
                 db.add("layouts", layout);
                 db.add("sites", site);
             }
@@ -545,6 +562,8 @@ class Database {
 
             this.$popup.classList.remove("active");
             this.update();
+            
+            history.pushState({code}, null, "/teaser_builder.html?code="+code);
          });
      }
 
@@ -602,40 +621,17 @@ class App {
 
         let code = this.viewCode;
         await Promise.all(
-            layout.viewList.map(async (id, idx) => {
+            layout.viewList.map(async id => {
                 let template = await db.get("templates", id);
                 let elem = template.contents.toElemInDiv();
                 elem.dataset.id = template.id;
                 elem.dataset.name = template.name;
                 elem.querySelectorAll(".has-context").forEach(x => x.addEventListener("contextmenu", event => this.contextMenu({event, code})));
 
-                let exception = ["Header_1", "Footer_1"];
-                exception.includes(template.name) == false && elem.addEventListener("contextmenu", e => {
-                                                            e.preventDefault();
-
-                                                            let overlap = document.querySelector(".context-menu");
-                                                            overlap && overlap.remove();
-
-                                                            let $menu = document.createElement("div");
-                                                            $menu.classList.add("context-menu");
-                                                            $menu.innerHTML = "<div>레이아웃 삭제</div>";
-                                                            $menu.firstElementChild.addEventListener("click", e => {
-                                                                e.preventDefault();
-                                                                if(!confirm("정말 삭제하시겠습니까?")) return;
-                                                                layout.viewList.splice(idx, 1);
-                                                                db.put("layouts", layout);
-                                                                this.update();
-                                                            });
-                                                            $menu.style.left = e.clientX + "px";
-                                                            $menu.style.top = e.clientY + "px";
-                                                            
-                                                            document.body.append($menu);
-                                                        });
-
                 this.$wrap.append(elem);
 
-                if(template.name === "Visual_1") this.makeSlide1(elem);
-                if(template.name === "Visual_2") this.makeSlide2(elem);
+                let fn = template.name.toLowerCase();
+                this[fn] && this[fn](elem);
             })
         )
         
@@ -687,7 +683,11 @@ class App {
         });
     }
 
-    makeSlide1(elem){
+    /**
+     * 각 페이지별 이벤트 정리
+     */
+
+    visual_1(elem){
         elem.animated && clearInterval(elem.animated);
 
         elem.querySelectorAll(".isClone").forEach(x => x.remove());
@@ -747,12 +747,16 @@ class App {
 
     }   
 
-    makeSlide2(elem){
+    visual_2(elem){
         elem.animated && clearInterval(elem.animated);
 
         let cs = 0;
 
         let images = elem.querySelectorAll(".images > img");
+        $(images).css({
+            opacity: "1",
+            display: "block"
+        });
 
         if(images.length < 2) {
             $(images).fadeIn();
@@ -770,6 +774,18 @@ class App {
         }, 3000);
     }
 
+    gallery_1 = elem => this.gallery(elem);
+    gallery_2 = elem => this.gallery(elem);
+
+    gallery(elem){
+        elem.querySelectorAll(".image").forEach(x => {
+            x.addEventListener("mousedown", e => {
+                document.querySelector("#image-shower img").src = e.currentTarget.querySelector("img").src;
+            });
+        });
+    }
+
+   
     contextMenu({event, code}){
         event.preventDefault();
         event.stopPropagation();
@@ -778,7 +794,7 @@ class App {
         let overlap = document.querySelector(".context-menu");
         overlap && overlap.remove();
 
-        let imageAction = ["editLogo", "editSlide", "editIcon"];
+        let imageAction = ["editLogo", "editSlide", "editIcon", "editImage"];
         let nameList = {
             "editLogo": "로고 변경",
             "editMenu": "메뉴 변경",
@@ -787,44 +803,80 @@ class App {
             "textStyle": "텍스트 색상/크기 변경",
             "editText": "텍스트 수정",
             "editLink": "링크 변경",
-            "editIcon": "아이콘 변경"
+            "editIcon": "아이콘 변경",
+            "removeLayout": "레이아웃 삭제",
+            "editImage": "이미지 수정",
+            "editBackground": "배경색 수정",
         };
 
         let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
-        let hideItems = target.querySelectorAll(".showhide-active");
 
         let {clientX, clientY} = event;
         let elem = "<div class='context-menu'></div>".toElem();
 
         
         menuList.forEach((fn, i) => {
-            let item = document.createElement("div");
-            item.innerText = nameList[fn];
-            item.addEventListener("click", e => {
-                let editor = new Editor({target, code});
-                ! imageAction.includes(fn) ? editor[fn]() : editor.editImage({
-                    imagePath: target.dataset.path,
-                    imageLimit: parseInt(target.dataset.limit),
-                    multiple: target.dataset.multiple
+            // 요소 일괄 보이기/감추기 
+            if(fn === "showhide"){ 
+                let hidableItem =  Array.from(target.querySelectorAll("*[data-hidable]"))
+                                .reduce((arr, item) => {
+                                    let idx = arr.findIndex(inarr => Array.isArray(inarr) && inarr[0].dataset.name == item.dataset.name);
+                                    idx < 0 ? arr.push([item]) : arr[idx].push(item);
+                                    return arr;
+                                }, []);
+                hidableItem.forEach(item => {
+                    let $item = `<div>${item[0].dataset.name} ${nameList[fn]}</div>`.toElem();
+                    $item.addEventListener("click", async e => {
+                        let isHide = item.some(x => x.classList.contains("hidden"));
+                        if(isHide) item.forEach(x => x.classList.remove("hidden"));
+                        else item.forEach(x => x.classList.add("hidden"));
+                        
+                        let parent = $(target).closest(".topper");
+                        let id = parent.data("id");
+                        let template = await db.get("templates", parseInt(id));
+                        template.contents = parent.html();
+                        await db.put("templates", template);
+                    });
+                    elem.append($item);
                 });
-            });
-            elem.append(item);
+            }
+            // 그 외
+            else {
+                let item = document.createElement("div");
+                item.innerText = nameList[fn];
+                item.addEventListener("click", async e => {
+                    if(imageAction.includes(fn)){
+                        let editor = new Editor({target, code});
+                        editor.editImage({
+                            imagePath: target.dataset.path,
+                            imageLimit: parseInt(target.dataset.limit),
+                            multiple: target.dataset.multiple
+                        });   
+                    }
+                    else if(fn === "removeLayout"){
+                        let parent = $(target).closest(".topper")[0];
+                        if(!confirm("정말 삭제하시겠습니까?")) return;
+                        
+                        let layout = await db.get("layouts", code);
+                        let idx = layout.viewList.findIndex(x => x == parent.dataset.id)
+                        layout.viewList.splice(idx, 1);
+                        await db.put("layouts", layout);
+                        this.update();
+                    } 
+                    else {
+                        let editor = new Editor({target, code});
+                        editor[fn]();
+                    }
+                });
+                elem.append(item);
+            }
         });
 
-        hideItems.forEach(hi => {
-            let item = document.createElement("div");
-            item.innerText = hi.dataset.name + " 보이기";
-            item.addEventListener("click", e => {
-                let editor = new Editor({id, target: hi});
-                editor.showhide();
-            });
-            elem.append(item);
-        });
 
         elem.style.left = clientX + "px";
         elem.style.top = clientY + "px"
 
-        if(menuList.length + hideItems.length > 0)
+        if(menuList.length > 0)
             document.body.append(elem);
 
     }
@@ -836,6 +888,6 @@ window.addEventListener("load", () => {
 
     db = new Database({dbname, version});
     db.request.addEventListener("success", () => {
-        app = new App();
+        app = new App(); 
     });
 });

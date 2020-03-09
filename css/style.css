@@ -83,6 +83,11 @@ table tbody:empty::after {
 .float-right { float: right; }
 .clear-both { clear: both; }
 
+.position-relative { position: relative; }
+.position-absolute { position: absolute; }
+.position-fixed { position: fixed; }
+
+
 .padding { padding: 100px 0; }
 
 /*  폼
@@ -483,7 +488,7 @@ nav .n-item:hover a::after {
     border: 1px solid #505050;
     border-radius: 50%;
     overflow: hidden;
-    background-color: #fff;
+    /* background-color: #fff; */
 }
 
 #features-2 .card { 
@@ -529,7 +534,7 @@ nav .n-item:hover a::after {
 
 
 .gallery .image { position: relative; overflow: hidden; }
-.gallery .image > img {
+.gallery .image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -556,13 +561,12 @@ nav .n-item:hover a::after {
     width: 60%;
     color: #dadada;
     z-index: 10;
+    user-select: none;
 }
 .gallery .image .text.top { bottom: auto; top: 20px; }
 
 .gallery .title { font-weight: 600; color: #fff; font-size: 1.3em; margin-bottom: 0.5rem; }
 
-
-#image-shower > label, .open-image { display: none; }
 
 #image-shower {
     position: fixed;
@@ -586,28 +590,11 @@ nav .n-item:hover a::after {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    display: none;
 }
 
 #image-shower img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
-
-
 .open-image:checked ~ #image-shower { opacity: 1; transition: 0.5s; pointer-events: all; }
 
-
-#open-image-1:checked ~ #image-shower label[for="open-image-1"] { display: block; }
-#open-image-2:checked ~ #image-shower label[for="open-image-2"] { display: block; }
-#open-image-3:checked ~ #image-shower label[for="open-image-3"] { display: block; }
-#open-image-4:checked ~ #image-shower label[for="open-image-4"] { display: block; }
-#open-image-5:checked ~ #image-shower label[for="open-image-5"] { display: block; }
-#open-image-6:checked ~ #image-shower label[for="open-image-6"] { display: block; }
-
-#open-image-1:checked ~ #image-shower .image:nth-of-type(1) { display: block; }
-#open-image-2:checked ~ #image-shower .image:nth-of-type(2) { display: block; }
-#open-image-3:checked ~ #image-shower .image:nth-of-type(3) { display: block; }
-#open-image-4:checked ~ #image-shower .image:nth-of-type(4) { display: block; }
-#open-image-5:checked ~ #image-shower .image:nth-of-type(5) { display: block; }
-#open-image-6:checked ~ #image-shower .image:nth-of-type(6) { display: block; }
 
 
 /* 갤러리 - 1
@@ -743,7 +730,8 @@ nav .n-item:hover a::after {
 .contact .icon img { width: 100%; height: 100%; object-fit: cover; }
 
 .contact .grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
-.contact .form-control:valid:not(:focus) { background-color: #f0f0f0!important; }
+.contact .form-control { --color: #f0f0f0; }
+.contact .form-control:valid:not(:focus) { background-color: var(--color)!important; }
 .contact .title {
     font-size: 1.6em;
     color: #586199;
@@ -769,7 +757,9 @@ nav .n-item:hover a::after {
 #contact_2 .devide:first-child { background-color: #1a2569a6;  }
 
 #contact_2 .form { max-width: 480px; }
-#contact_2 .info { filter: grayscale(100%) brightness(500%); text-align: center; }
+#contact_2 .info { text-align: center; }
+#contact_2 .info * { color: #fff; }
+#contact_2 .icon { filter: brightness(500%); }
 
 #contact_2 .title h1 { font-weight: 100; font-size: 3em; }
 #contact_2 .sub-title { text-align: left; }
@@ -780,7 +770,7 @@ nav .n-item:hover a::after {
 
 /* 푸터
 */
-footer { background-color: #444; padding: 20px 0; font-size: 0.8em; color: #eee; }
+footer { --color: #444; background-color: var(--color); padding: 20px 0; font-size: 0.8em; color: #eee; }
 footer .logo { filter: brightness(300%) grayscale(100%); }
 footer .logo:hover { filter: brightness(500%) grayscale(100%); }
 footer .icons img:hover { transform: scale(1.1); transition: transform 0.5s;  }

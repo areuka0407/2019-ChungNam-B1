@@ -1,4 +1,4 @@
-<div id="features-2" class="features">
+<div id="features-2" class="features has-context" data-context="removeLayout showhide">
     <div class="padding container">
         <div class="section-title">
             <h1 class="text-center">Features</h1>
@@ -6,28 +6,28 @@
         <div class="card-list align-items-center">
             <div class="card" lang="en">
                 <div>
-                    <div class="icon"><img src="./images/icons/1.png" title="icon" alt="icon"></div>
-                    <h3>Lorem ipsum1</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nam officia aspernatur nisi ut eligendi consectetur voluptate, fuga magni quasi. Nisi ratione veniam id illum, facere reiciendis assumenda quis quod maxime!</p>
-                    <button class="btn">Read More</button>
+                    <div class="icon has-context" data-context="editIcon" data-name="아이콘" data-hidable="hidable" data-path="/template_images/icon/$.png" data-limit="70"><img src="./template_images/icon/1.png" title="icon" alt="icon"></div>
+                    <h3 class="has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum1</h3>
+                    <p class="has-context" data-context="editText textStyle" data-hidable="hidable" data-name="텍스트">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nam officia aspernatur nisi ut eligendi consectetur voluptate, fuga magni quasi. Nisi ratione veniam id illum, facere reiciendis assumenda quis quod maxime!</p>
+                    <a href="#" class="btn has-context" data-context="editText textStyle editLink" data-hidable="hidable" data-name="링크버튼">Read More</a>
                 </div>
             </div>
             <hr>
             <div class="card" lang="en">
                 <div>
-                    <div class="icon"><img src="./images/icons/2.png" title="icon" alt="icon"></div>
-                    <h3>Lorem ipsum2</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit consectetur quae quaerat earum laborum repellendus voluptatibus quos non autem ex illum placeat totam explicabo, nihil ut molestiae minima, inventore. Voluptate.</p>
-                    <button class="btn">Read More</button>
+                    <div class="icon has-context" data-context="editIcon" data-name="아이콘" data-hidable="hidable" data-path="/template_images/icon/$.png" data-limit="70"><img src="./template_images/icon/2.png" title="icon" alt="icon"></div>
+                    <h3 class="has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum2</h3>
+                    <p class="has-context" data-context="editText textStyle" data-hidable="hidable" data-name="텍스트">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit consectetur quae quaerat earum laborum repellendus voluptatibus quos non autem ex illum placeat totam explicabo, nihil ut molestiae minima, inventore. Voluptate.</p>
+                    <a href="#" class="btn has-context" data-context="editText textStyle editLink" data-hidable="hidable" data-name="링크버튼">Read More</a>
                 </div>
             </div>
             <hr>
             <div class="card" lang="en">
                 <div>
-                    <div class="icon"><img src="./images/icons/3.png" title="icon" alt="icon"></div>
-                    <h3>Lorem ipsum3</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea ipsa, expedita dicta natus, dolore error nulla repellendus commodi fugit aliquam, minus libero placeat alias dolor odit molestiae? Similique, assumenda consequuntur.</p>
-                    <button class="btn">Read More</button>
+                    <div class="icon has-context" data-context="editIcon" data-name="아이콘" data-hidable="hidable" data-path="/template_images/icon/$.png" data-limit="70"><img src="./template_images/icon/3.png" title="icon" alt="icon"></div>
+                    <h3 class="has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum3</h3>
+                    <p class="has-context" data-context="editText textStyle" data-hidable="hidable" data-name="텍스트">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea ipsa, expedita dicta natus, dolore error nulla repellendus commodi fugit aliquam, minus libero placeat alias dolor odit molestiae? Similique, assumenda consequuntur.</p>
+                    <a href="#" class="btn has-context" data-context="editText textStyle editLink" data-hidable="hidable" data-name="링크버튼">Read More</a>
                 </div>
             </div>
         </div>

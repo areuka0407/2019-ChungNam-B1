@@ -1,0 +1,77 @@
+<!-- 이미지 팝업창 -->
+<input type="checkbox" id="open-image" class="open-image" hidden>
+<div id="image-shower">
+    <label for="open-image"></label>
+    <div class="image"><img alt="팝업 이미지" title="팝업 이미지"></div>
+</div>
+<!-- 이미지 갤러리 -->
+<div id="gallery-1" class="gallery has-context" data-context="removeLayout showhide">
+    <div class="container padding">
+        <div class="section-title">
+            <h1 class="has-context" data-context="editText">Gallery</h1>
+            <p class="has-context" data-context="editText">BMIF 갤러리</p>
+        </div>
+        <div class="grid">
+            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" lang="en">
+                <div class="w-100 h-100">
+                    <label for="open-image"></label>
+                    <div class="text">
+                        <div class="title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum1</div>
+                        <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+                    </div>
+                    <img src="./images/gallery/1.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                </div>
+            </div>
+            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" lang="en">
+                <div class="w-100 h-100">
+                    <label for="open-image"></label>
+                    <div class="text">
+                        <div class="title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum2</div>
+                        <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+                    </div>
+                    <img src="./images/gallery/2.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                </div>
+            </div>
+            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" lang="en">
+                <div class="w-100 h-100">
+                    <label for="open-image"></label>
+                    <div class="text">
+                        <div class="title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum3</div>
+                        <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+                    </div>
+                    <img src="./images/gallery/3.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                </div>
+            </div>
+            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" lang="en">
+                <div class="w-100 h-100">
+                    <label for="open-image"></label>
+                    <div class="text">
+                        <div class="title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum4</div>
+                        <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+                    </div>
+                    <img src="./images/gallery/4.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                </div>
+            </div>
+            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" lang="en">
+                <div class="w-100 h-100">
+                    <label for="open-image"></label>
+                    <div class="text">
+                        <div class="title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum5</div>
+                        <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+                    </div>
+                    <img src="./images/gallery/5.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                </div>
+            </div>
+            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" lang="en">
+                <div class="w-100 h-100">
+                    <label for="open-image"></label>
+                    <div class="text top">
+                        <div class="title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="타이틀">Lorem ipsum6</div>
+                        <div class="sub-title has-context" data-context="editText textStyle" data-hidable="hidable" data-name="서브타이틀">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+                    </div>
+                    <img src="./images/gallery/6.jpg" alt="갤러리 이미지" title="갤러리 이미지">
+                </div>
+            </div>
+        </div> 
+    </div>
+</div> 
