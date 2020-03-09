@@ -1,7 +1,7 @@
 <footer>
     <div class="container d-flex justify-content-between align-items-center">
         <div class="left">
-            <a href="#" class="logo"><img src="./images/logo.png" title="부산국제매직페스티벌" alt="부산국제매직페스티벌" height="50" class="has-context" data-context="editLogo" data-path="/template_images/logo/logo$.png" data-limit="3"></a>
+            <a href="#" class="logo has-context" data-context="editLogo" data-path="/template_images/logo/logo$.png" data-limit="3"><img src="./images/logo.png" title="부산국제매직페스티벌" alt="부산국제매직페스티벌" height="50"></a>
         </div>
         <div class="center">
             <p>부산국제매직페스티벌 | Busan International Magic Festival</p>

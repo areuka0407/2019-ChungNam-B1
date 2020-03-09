@@ -214,7 +214,7 @@ table tbody:empty::after {
     background-color: transparent;
     color: #324197;
 }
-.btn:hover { background-color: #324197; color: #fff; border-color: transparent; }
+.btn:hover { background-color: #324197; color: #fff!important; border-color: transparent; }
 
 .btn-light {
     border-color: #fff;

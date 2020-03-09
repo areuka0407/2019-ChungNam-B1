@@ -21,11 +21,48 @@ String.prototype.toElemInDiv = function(){
     elem.innerHTML = this;
     return elem;
 }
+
+String.prototype.rgbtohex = function(){
+    let matches = /rgb\(\s*(?<red>[0-9]+)\s*,\s*(?<green>[0-9]+)\s*,\s*(?<blue>[0-9]+)\s*\)/.exec(this);
+    let result = "";
+
+    for(let key in matches.groups){
+        let val = parseInt(matches.groups[key]);
+        result += val.toHex();
+    }
+
+    return "#" + result;
+}
+
+Number.prototype.toHex = function(){
+    let result = [];
+    let _this = parseInt(this);
+    
+    while(_this > 0){
+        result.push( transHex(_this % 16) );
+        _this = parseInt(_this / 16);
+    }
+
+    return result.reverse().join("");
+}
+function transHex(num){
+    switch(parseInt(num)){
+        case 10: return "A";
+        case 11: return "B";
+        case 12: return "C";
+        case 13: return "D";
+        case 14: return "E";
+        case 15: return "F";
+        default: return num;
+    }
+}
+
 Element.prototype.setStyle = function(lists){
     for(let prop in lists){
         this.style[prop] = lists;
     }
 }
+
 
 location.getValue = function(keyword = ""){
     let result = {};
@@ -135,7 +172,7 @@ class Database {
         document.body.append(this.$elem);
      }
 
-     // 이미지 수정
+     // 이미지 수정 :: img 태그에 직접 걸지 말고, 감싸고 있는 태그에 적용할 것!
      async editImage({imagePath, imageLimit = 1, multiple = false}){
          
         this.$body.innerHTML = `<div class="logo-edit">
@@ -170,7 +207,9 @@ class Database {
                     let $image = `<div class="image">
                                     <img src="${reader.result}" title="logo" alt="logo" width="100">
                                 </div>`.toElem();
-                    $image.addEventListener("click", () => this.e_imageActive($image, $imgList.length, $imgList, multiple));
+                    $image.addEventListener("click", () => {
+                        this.e_imageActive($image, $imgList.length, $imgList, multiple);
+                    });
                     $row.append($image);
                 }
                 reader.readAsDataURL(file);
@@ -178,14 +217,6 @@ class Database {
         });
     
         this.$body.querySelector(".btn-accept").addEventListener("click", async () => {
-            let selected = Array.from(this.$body.querySelectorAll(".row > .image.active > img"));
-            let sample = this.$root.firstElementChild.outerHTML;
-
-            this.$root.innerHTML = selected.map(sel => {
-                 return sample.replace(/(<img[^>]*src=")([^'"]+)("[^>]*>)/g, `$1${sel.src}$3`);
-            }).join("");
-            
-
             await this.save();
             this.$elem.remove();
             app.update();
@@ -259,6 +290,37 @@ class Database {
         this.$elem.remove();
      }
 
+     // 텍스트 스타일 변경
+     textStyle(){
+        let textColor = $(this.$root).css("color");
+        let textSize = parseInt($(this.$root).css("font-size"));
+        this.$body.innerHTML = `<form class="textStyle">
+                                    <div class="form-group">
+                                        <label for="text-color">텍스트 색상</label>
+                                        <input type="color" id="text-color" name="color" value=${textColor.rgbtohex()}>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="text-size">텍스트 크기</label>
+                                        <input type="number" id="text-size" name="fontSize" style="width: 50px" value="${textSize}">
+                                        <span>px</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-accept w-100 mt-5">변경하기</button>
+                                    </div>
+                                </form>`;
+        this.$body.querySelector("form.textStyle").addEventListener("submit", e => {
+            e.preventDefault();
+
+            this.$root.style.fontSize = this.$body.querySelector("#text-size").value + "px";
+            this.$root.style.color = this.$body.querySelector("#text-color").value;
+
+            this.save().then(() => {
+                this.$elem.remove();
+                app.update();
+            });
+        });
+     }
+
      
      // 이미지를 클릭할 때 Active 토글을 거는 함수
      e_imageActive(target, i, list, multiple = false) {
@@ -268,6 +330,18 @@ class Database {
             });
         }
         target.classList.toggle("active");
+
+
+        let selected = Array.from(this.$body.querySelectorAll(".row .image.active > img"));
+        let sample = this.$root.firstElementChild.outerHTML;
+
+        this.$root.innerHTML = selected.map(sel => {
+            return sample.replace(/(<img[^>]*src=")([^'"]+)("[^>]*>)/g, `$1${sel.src}$3`);
+        }).join("");
+
+
+        if(this.parent.dataset.name === "Visual_1") app.makeSlide1(this.parent)
+        else if(this.parent.dataset.name === "Visual_2") app.makeSlide2(this.parent)
      }
 
      /**
@@ -523,6 +597,8 @@ class App {
     }
 
     makeSlide1(elem){
+        elem.animated && clearInterval(elem.animated);
+
         let cs = 0; // current slide
         let container = elem.querySelector(".images > div");
         let images = elem.querySelectorAll(".image"); // 기존 이미지 배열
@@ -532,7 +608,7 @@ class App {
         });
         
         if(images.length < 2) {
-            container.css("top", "0");
+            $(container).css("top", "0");
             return;
         }
 
@@ -560,7 +636,7 @@ class App {
         
         $(container).css("top", `-${i_height}px`);
     
-        setInterval(() => {
+        elem.animated = setInterval(() => {
             cs++;
             $(_images).css({transform: "scale(0.8)", opacity: "0.5"});
             $(elem.querySelectorAll(`.image[data-no="${cs >= images.length ? 0 : cs}"]`)).css({transform: "scale(1)", opacity: "1"});
@@ -575,6 +651,8 @@ class App {
     }   
 
     makeSlide2(elem){
+        elem.animated && clearInterval(elem.animated);
+
         let cs = 0;
 
         let images = elem.querySelectorAll(".images > img");
@@ -586,9 +664,8 @@ class App {
 
         $(images).not(`:eq(0)`).fadeOut();
 
-        setInterval(() => {
+        elem.animated = setInterval(() => {
             let ns = cs + 1 >= images.length ? 0 : cs + 1;
-            console.log($(images).eq(cs)[0], $(images).eq(ns)[0]);
             $(images).eq(cs).fadeOut(1000);
             $(images).eq(ns).fadeIn(1000);
 

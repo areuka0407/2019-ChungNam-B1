@@ -2,8 +2,8 @@
 <header>
     <div class="container d-flex justify-content-between align-items-center h-100">
         <!-- 로고 -->
-        <a href="#" class="logo">
-            <img class="has-context" data-context="editLogo" data-path="/template_images/logo/logo$.png" data-limit="3" src="images/logo.png" title="부산국제매직페스티벌" alt="부산국제매직페스티벌" height="60">
+        <a href="#" class="logo has-context" data-context="editLogo" data-path="/template_images/logo/logo$.png" data-limit="3">
+            <img src="images/logo.png" title="부산국제매직페스티벌" alt="부산국제매직페스티벌" height="60">
         </a>
         <!-- 네비게이션 -->
         <nav class="has-context" data-context="editMenu">
