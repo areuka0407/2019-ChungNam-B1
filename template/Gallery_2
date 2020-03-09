@@ -12,7 +12,7 @@
             <p class="has-context" data-context="editText">BMIF 갤러리</p>
         </div>
         <div class="main-viewer">
-            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-1" lang="en">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-1" lang="en">
                 <div class="w-100 h-100">
                     <label for="open-image"></label>
                     <div class="text">
@@ -22,7 +22,7 @@
                     <img src="./images/gallery/1.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
-            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-2" lang="en">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-2" lang="en">
                 <div class="w-100 h-100">
                     <label for="open-image"></label>
                     <div class="text">
@@ -32,7 +32,7 @@
                     <img src="./images/gallery/2.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
-            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-3" lang="en">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-3" lang="en">
                 <div class="w-100 h-100">
                     <label for="open-image"></label>
                     <div class="text">
@@ -42,7 +42,7 @@
                     <img src="./images/gallery/3.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
-            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-4" lang="en">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-4" lang="en">
                 <div class="w-100 h-100">
                     <label for="open-image"></label>
                     <div class="text">
@@ -52,7 +52,7 @@
                     <img src="./images/gallery/4.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
-            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-5" lang="en">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-5" lang="en">
                 <div class="w-100 h-100">
                     <label for="open-image"></label>
                     <div class="text">
@@ -62,7 +62,7 @@
                     <img src="./images/gallery/5.jpg" alt="갤러리 이미지" title="갤러리 이미지">
                 </div>
             </div>
-            <div class="image has-context" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-6" lang="en">
+            <div class="image" data-context="editImage" data-path="/template_images/gallery/$.jpg" data-limit="35" data-combine="#combine-6" lang="en">
                 <div class="w-100 h-100">
                     <label for="open-image"></label>
                     <div class="text top">

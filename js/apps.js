@@ -222,7 +222,6 @@ class Database {
             if(this.$body.querySelector(".row > .image.active")) {
                 this.save().then(x => {
                     this.$elem.remove();
-                    app.update();
                 });
             }
             else this.$elem.remove();
@@ -780,7 +779,18 @@ class App {
     gallery(elem){
         elem.querySelectorAll(".image").forEach(x => {
             x.addEventListener("mousedown", e => {
-                document.querySelector("#image-shower img").src = e.currentTarget.querySelector("img").src;
+                if(e.which === 1) document.querySelector("#image-shower img").src = e.currentTarget.querySelector("img").src;
+            });
+            x.addEventListener("contextmenu", e => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                let editor = new Editor({target: x, code: this.viewCode});
+                editor.editImage({
+                    imagePath: x.dataset.path,
+                    imageLimit: parseInt(x.dataset.limit),
+                    multiple: x.dataset.multiple
+                });   
             });
         });
     }
@@ -845,6 +855,7 @@ class App {
                 let item = document.createElement("div");
                 item.innerText = nameList[fn];
                 item.addEventListener("click", async e => {
+                    // 이미지일 경우
                     if(imageAction.includes(fn)){
                         let editor = new Editor({target, code});
                         editor.editImage({
@@ -853,6 +864,7 @@ class App {
                             multiple: target.dataset.multiple
                         });   
                     }
+                    // 레이아웃 삭제
                     else if(fn === "removeLayout"){
                         let parent = $(target).closest(".topper")[0];
                         if(!confirm("정말 삭제하시겠습니까?")) return;
@@ -863,6 +875,7 @@ class App {
                         await db.put("layouts", layout);
                         this.update();
                     } 
+                    // 일반
                     else {
                         let editor = new Editor({target, code});
                         editor[fn]();
