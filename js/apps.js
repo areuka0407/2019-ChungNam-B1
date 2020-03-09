@@ -127,14 +127,17 @@ class Database {
                             <div class="body"></div>
                         </div>`.toElem();
 
-        this.$elem.querySelector(".close").addEventListener("click", e => this.$elem.remove());
+        this.$elem.querySelector(".close").addEventListener("click", e => {
+            this.$elem.remove();
+            app.update();
+        });
         this.$body = this.$elem.querySelector(".body");
         document.body.append(this.$elem);
      }
 
      // 이미지 수정
      async editImage({imagePath, imageLimit = 1, multiple = false}){
-         console.log(multiple);
+         
         this.$body.innerHTML = `<div class="logo-edit">
                                     <div class="form-group">
                                         <label for="i_image">업로드</label>
@@ -474,11 +477,9 @@ class App {
             elem.querySelectorAll(".has-context").forEach(x => x.addEventListener("contextmenu", event => this.contextMenu({event, id})));
             this.$wrap.append(elem);
             
+            if(key === "Visual_1") this.makeSlide1(elem);
+            if(key === "Visual_2") this.makeSlide2(elem);
         });
-
-        if(cv.viewList.includes("Visual_1") || cv.viewList.includes("Visual_2")){
-            this.slideEvent();
-        }
         
         localStorage.setItem("view_id", this.view_id);
     }
@@ -521,12 +522,78 @@ class App {
         });
     }
 
-    slideEvent(){
-        let box1 = document.querySelector("#visual-1 .images > div");
-        let images1 = document.querySelectorAll("#visual img");
-        if(box1){
-            
+    makeSlide1(elem){
+        let cs = 0; // current slide
+        let container = elem.querySelector(".images > div");
+        let images = elem.querySelectorAll(".image"); // 기존 이미지 배열
+
+        images.forEach((x, i) => {
+            x.dataset.no = i;
+        });
+        
+        if(images.length < 2) {
+            container.css("top", "0");
+            return;
         }
+
+        let lastClone = images[images.length - 1].cloneNode(true);
+        container.prepend(lastClone);
+        let firstClone = images[0].cloneNode(true);
+        container.append(firstClone);
+        let secondClone = images[1].cloneNode(true);
+        container.append(secondClone);
+
+
+        let _images = elem.querySelectorAll(".image"); // 클론까지 추가한 이미지 배열
+        $(container).css("height", _images.length * 100 + "%");
+
+        let i_height = container.offsetHeight / _images.length;
+
+        $(_images).css({
+            transform: "scale(0.8)",
+            opacity: "0.5",
+            transition: "1s",
+            height: i_height + "px"
+        })
+        $(_images).eq(1).css({transform: "scale(1)", opacity: "1"})
+
+        
+        $(container).css("top", `-${i_height}px`);
+    
+        setInterval(() => {
+            cs++;
+            $(_images).css({transform: "scale(0.8)", opacity: "0.5"});
+            $(elem.querySelectorAll(`.image[data-no="${cs >= images.length ? 0 : cs}"]`)).css({transform: "scale(1)", opacity: "1"});
+            $(container).animate({top: `${-i_height + i_height * -cs}px`}, 1000, () => {
+                if(cs + 1 > images.length){
+                    $(container).css("top", `-${i_height}px`);
+                    cs = 0;
+                }
+            });
+        }, 3000);
+
+    }   
+
+    makeSlide2(elem){
+        let cs = 0;
+
+        let images = elem.querySelectorAll(".images > img");
+
+        if(images.length < 2) {
+            $(images).fadeIn();
+            return;
+        }
+
+        $(images).not(`:eq(0)`).fadeOut();
+
+        setInterval(() => {
+            let ns = cs + 1 >= images.length ? 0 : cs + 1;
+            console.log($(images).eq(cs)[0], $(images).eq(ns)[0]);
+            $(images).eq(cs).fadeOut(1000);
+            $(images).eq(ns).fadeIn(1000);
+
+            cs = cs + 1 >= images.length ? 0 : cs + 1;
+        }, 3000);
     }
 
     contextMenu({event, id}){
