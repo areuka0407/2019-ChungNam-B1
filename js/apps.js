@@ -612,9 +612,9 @@ class App {
         if(! (site && layout)) return alert("해당 페이지를 찾을 수 없습니다.");
 
         document.title = site.title;
-        document.head.append( `<meta name="title" content="${site.title}">`.toElem() );
-        document.head.append( `<meta name="description" content="${site.description}">`.toElem() );
-        document.head.append( `<meta name="keyword" content="${site.keyword}">`.toElem() );
+        document.querySelector("meta[name='title']").content = site.title;
+        document.querySelector("meta[name='description']").content = site.description;
+        document.querySelector("meta[name='keyword']").content = site.keyword;
 
         this.$wrap.innerHTML = "";
 
@@ -785,6 +785,9 @@ class App {
                 e.preventDefault();
                 e.stopPropagation();
 
+                let overlap = document.querySelector(".context-menu");
+                overlap && overlap.remove();
+
                 let editor = new Editor({target: x, code: this.viewCode});
                 editor.editImage({
                     imagePath: x.dataset.path,
@@ -798,9 +801,6 @@ class App {
    
     contextMenu({event, code}){
         event.preventDefault();
-        event.stopPropagation();
-
-        let target = event.currentTarget;
         let overlap = document.querySelector(".context-menu");
         overlap && overlap.remove();
 
@@ -819,70 +819,77 @@ class App {
             "editBackground": "배경색 수정",
         };
 
+        let target = event.currentTarget;
+
+
         let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
+        event.execList = event.execList ? event.execList.concat([{target, menuList}]) : [{target, menuList}];
 
         let {clientX, clientY} = event;
         let elem = "<div class='context-menu'></div>".toElem();
 
-        
-        menuList.forEach((fn, i) => {
-            // 요소 일괄 보이기/감추기 
-            if(fn === "showhide"){ 
-                let hidableItem =  Array.from(target.querySelectorAll("*[data-hidable]"))
-                                .reduce((arr, item) => {
-                                    let idx = arr.findIndex(inarr => Array.isArray(inarr) && inarr[0].dataset.name == item.dataset.name);
-                                    idx < 0 ? arr.push([item]) : arr[idx].push(item);
-                                    return arr;
-                                }, []);
-                hidableItem.forEach(item => {
-                    let $item = `<div>${item[0].dataset.name} ${nameList[fn]}</div>`.toElem();
-                    $item.addEventListener("click", async e => {
-                        let isHide = item.some(x => x.classList.contains("hidden"));
-                        if(isHide) item.forEach(x => x.classList.remove("hidden"));
-                        else item.forEach(x => x.classList.add("hidden"));
-                        
-                        let parent = $(target).closest(".topper");
-                        let id = parent.data("id");
-                        let template = await db.get("templates", parseInt(id));
-                        template.contents = parent.html();
-                        await db.put("templates", template);
+        event.execList.forEach(item => {
+            let target = item.target;
+            item.menuList.forEach((fn, i) => {
+                // 요소 일괄 보이기/감추기 
+                if(fn === "showhide"){ 
+                    let hidableItem =  Array.from(target.querySelectorAll("*[data-hidable]"))
+                                    .reduce((arr, item) => {
+                                        let idx = arr.findIndex(inarr => Array.isArray(inarr) && inarr[0].dataset.name == item.dataset.name);
+                                        idx < 0 ? arr.push([item]) : arr[idx].push(item);
+                                        return arr;
+                                    }, []);
+                    hidableItem.forEach(item => {
+                        let $item = `<div>${item[0].dataset.name} ${nameList[fn]}</div>`.toElem();
+                        $item.addEventListener("click", async e => {
+                            let isHide = item.some(x => x.classList.contains("hidden"));
+                            if(isHide) item.forEach(x => x.classList.remove("hidden"));
+                            else item.forEach(x => x.classList.add("hidden"));
+                            
+                            let parent = $(target).closest(".topper");
+                            let id = parent.data("id");
+                            let template = await db.get("templates", parseInt(id));
+                            template.contents = parent.html();
+                            await db.put("templates", template);
+                        });
+                        elem.append($item);
                     });
-                    elem.append($item);
-                });
-            }
-            // 그 외
-            else {
-                let item = document.createElement("div");
-                item.innerText = nameList[fn];
-                item.addEventListener("click", async e => {
-                    // 이미지일 경우
-                    if(imageAction.includes(fn)){
-                        let editor = new Editor({target, code});
-                        editor.editImage({
-                            imagePath: target.dataset.path,
-                            imageLimit: parseInt(target.dataset.limit),
-                            multiple: target.dataset.multiple
-                        });   
-                    }
-                    // 레이아웃 삭제
-                    else if(fn === "removeLayout"){
-                        let parent = $(target).closest(".topper")[0];
-                        if(!confirm("정말 삭제하시겠습니까?")) return;
-                        
-                        let layout = await db.get("layouts", code);
-                        let idx = layout.viewList.findIndex(x => x == parent.dataset.id)
-                        layout.viewList.splice(idx, 1);
-                        await db.put("layouts", layout);
-                        this.update();
-                    } 
-                    // 일반
-                    else {
-                        let editor = new Editor({target, code});
-                        editor[fn]();
-                    }
-                });
-                elem.append(item);
-            }
+                }
+                // 그 외
+                else {
+                    let item = document.createElement("div");
+                    item.innerText = nameList[fn];
+                    item.addEventListener("click", async e => {
+                        // 이미지일 경우
+                        if(imageAction.includes(fn)){
+                            let editor = new Editor({target, code});
+                            editor.editImage({
+                                imagePath: target.dataset.path,
+                                imageLimit: parseInt(target.dataset.limit),
+                                multiple: target.dataset.multiple
+                            });   
+                        }
+                        // 레이아웃 삭제
+                        else if(fn === "removeLayout"){
+                            let parent = $(target).closest(".topper")[0];
+                            if(!confirm("정말 삭제하시겠습니까?")) return;
+                            
+                            let layout = await db.get("layouts", code);
+                            let idx = layout.viewList.findIndex(x => x == parent.dataset.id)
+                            layout.viewList.splice(idx, 1);
+                            await db.put("layouts", layout);
+                            this.update();
+                        } 
+                        // 일반
+                        else {
+                            let editor = new Editor({target, code});
+                            editor[fn]();
+                        }
+                    });
+                    elem.append(item);
+                }
+            });
+
         });
 
 
