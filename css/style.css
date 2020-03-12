@@ -1089,3 +1089,18 @@ footer .copyright { color: #bbb; }
 }
 .popup .row > .image.active { opacity: 0.5; }
 .popup .row > .image img { width: 100%; height: 100%; object-fit: contain; }
+
+
+.topper { position: relative; }
+
+.btn-option {
+    display: none;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    font-size: 0.9em;
+    background-color: #fff;
+}
+
+.topper.active::before { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 5px solid rgb(238, 39, 39); }
+.topper.active .btn-option { display: block; }

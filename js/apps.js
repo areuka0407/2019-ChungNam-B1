@@ -629,6 +629,16 @@ class App {
 
                 this.$wrap.append(elem);
 
+                let $optionBtn = `<button class="btn btn-option">설정</button>`.toElem();
+                $optionBtn.addEventListener("click", e => this.option({event: e, elem}));
+                elem.append($optionBtn);
+
+                elem.addEventListener("dblclick", () => {
+                    let exist = document.querySelector(".topper.active");
+                    exist && exist.classList.remove("active");
+                    elem.classList.add("active");
+                });
+
                 let fn = template.name.toLowerCase();
                 this[fn] && this[fn](elem);
             })
@@ -673,6 +683,8 @@ class App {
 
         // 콘텍스트 삭제
         document.body.addEventListener("click", e => {
+            if(e.target.classList.contains("btn-option")) return;
+
             let exist = document.querySelector(".context-menu");
             exist && exist.remove();
         });
@@ -798,29 +810,28 @@ class App {
         });
     }
 
+    imageAction = ["editLogo", "editSlide", "editIcon", "editImage"]
+    nameList = {
+        "editLogo": "로고 수정",
+        "editMenu": "메뉴 변경",
+        "showhide": "보이기/감추기",
+        "editSlide": "비주얼 이미지 수정",
+        "textStyle": "텍스트 색상/크기 변경",
+        "editText": "텍스트 수정",
+        "editLink": "링크 변경",
+        "editIcon": "아이콘 변경",
+        "removeLayout": "레이아웃 삭제",
+        "editImage": "이미지 수정",
+        "editBackground": "배경색 수정",
+    }
    
     contextMenu({event, code}){
         event.preventDefault();
         let overlap = document.querySelector(".context-menu");
         overlap && overlap.remove();
-
-        let imageAction = ["editLogo", "editSlide", "editIcon", "editImage"];
-        let nameList = {
-            "editLogo": "로고 변경",
-            "editMenu": "메뉴 변경",
-            "showhide": "보이기/감추기",
-            "editSlide": "슬라이드 이미지 변경",
-            "textStyle": "텍스트 색상/크기 변경",
-            "editText": "텍스트 수정",
-            "editLink": "링크 변경",
-            "editIcon": "아이콘 변경",
-            "removeLayout": "레이아웃 삭제",
-            "editImage": "이미지 수정",
-            "editBackground": "배경색 수정",
-        };
+        
 
         let target = event.currentTarget;
-
 
         let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
         event.execList = event.execList ? event.execList.concat([{target, menuList}]) : [{target, menuList}];
@@ -830,7 +841,7 @@ class App {
 
         event.execList.forEach(item => {
             let target = item.target;
-            item.menuList.forEach((fn, i) => {
+            item.menuList.forEach((fn) => {
                 // 요소 일괄 보이기/감추기 
                 if(fn === "showhide"){ 
                     let hidableItem =  Array.from(target.querySelectorAll("*[data-hidable]"))
@@ -840,7 +851,7 @@ class App {
                                         return arr;
                                     }, []);
                     hidableItem.forEach(item => {
-                        let $item = `<div>${item[0].dataset.name} ${nameList[fn]}</div>`.toElem();
+                        let $item = `<div>${item[0].dataset.name} ${this.nameList[fn]}</div>`.toElem();
                         $item.addEventListener("click", async e => {
                             let isHide = item.some(x => x.classList.contains("hidden"));
                             if(isHide) item.forEach(x => x.classList.remove("hidden"));
@@ -858,10 +869,10 @@ class App {
                 // 그 외
                 else {
                     let item = document.createElement("div");
-                    item.innerText = nameList[fn];
+                    item.innerText = this.nameList[fn];
                     item.addEventListener("click", async e => {
                         // 이미지일 경우
-                        if(imageAction.includes(fn)){
+                        if(this.imageAction.includes(fn)){
                             let editor = new Editor({target, code});
                             editor.editImage({
                                 imagePath: target.dataset.path,
@@ -899,6 +910,94 @@ class App {
         if(menuList.length > 0)
             document.body.append(elem);
 
+    }
+
+    option({event, elem}){
+        let exist = document.querySelector(".context-menu");
+        exist && exist.remove();
+
+        let list = Array.from(elem.querySelectorAll(".has-context"));
+        list = list.map(el => ({
+            target: el, 
+            menuList: el.dataset.context && el.dataset.context.split(" ")
+        }));
+
+        let $context = document.createElement("div");
+        $context.classList.add("context-menu");
+
+        list.forEach(({target, menuList}) => {
+            menuList.forEach((fn) => {
+                // 요소 일괄 보이기/감추기 
+                if(fn === "showhide"){ 
+                    let hidableItem =  Array.from(target.querySelectorAll("*[data-hidable]"))
+                                    .reduce((arr, item) => {
+                                        let idx = arr.findIndex(inarr => Array.isArray(inarr) && inarr[0].dataset.name == item.dataset.name);
+                                        idx < 0 ? arr.push([item]) : arr[idx].push(item);
+                                        return arr;
+                                    }, []);
+                    hidableItem.forEach(item => {
+                        let $item = `<div>${item[0].dataset.name} ${this.nameList[fn]}</div>`.toElem();
+                        $item.addEventListener("click", async e => {
+                            let isHide = item.some(x => x.classList.contains("hidden"));
+                            if(isHide) item.forEach(x => x.classList.remove("hidden"));
+                            else item.forEach(x => x.classList.add("hidden"));
+                            
+                            let parent = $(target).closest(".topper");
+                            let id = parent.data("id");
+                            let template = await db.get("templates", parseInt(id));
+                            template.contents = parent.html();
+                            await db.put("templates", template);
+                        });
+                        $context.append($item);
+                    });
+                }
+                // 그 외
+                else {
+                    let item = document.createElement("div");
+                    console.log(target.dataset.name);
+                    item.innerText = ( target.dataset.name ? target.dataset.name + " " : "" ) + this.nameList[fn];
+                    item.addEventListener("click", async e => {
+                        // 이미지일 경우
+                        if(this.imageAction.includes(fn)){
+                            let editor = new Editor({target, code: this.viewCode});
+                            editor.editImage({
+                                imagePath: target.dataset.path,
+                                imageLimit: parseInt(target.dataset.limit),
+                                multiple: target.dataset.multiple
+                            });   
+                        }
+                        // 레이아웃 삭제
+                        else if(fn === "removeLayout"){
+                            let parent = $(target).closest(".topper")[0];
+                            if(!confirm("정말 삭제하시겠습니까?")) return;
+                            
+                            let layout = await db.get("layouts", this.viewCode);
+                            let idx = layout.viewList.findIndex(x => x == parent.dataset.id)
+                            layout.viewList.splice(idx, 1);
+                            await db.put("layouts", layout);
+                            this.update();
+                        } 
+                        // 일반
+                        else {
+                            let editor = new Editor({target, code: this.viewCode});
+                            editor[fn]();
+                        }
+                    });
+                    $context.append(item);
+                }
+            });
+        });
+
+
+        document.body.append($context);
+
+        let {offsetWidth, offsetHeight} = $context;
+        let {clientX, clientY} = event
+        $context.style.left = clientX - offsetWidth - 10 + "px";
+        $context.style.top = clientY - offsetHeight - 10 + "px";
+
+        console.log(document.body, $context);
+        
     }
 }
 
