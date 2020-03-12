@@ -798,7 +798,9 @@ class App {
    
     contextMenu({event, code}){
         event.preventDefault();
-        event.stopPropagation();
+        
+        // event.stopPropagation();
+        
 
         let target = event.currentTarget;
         let overlap = document.querySelector(".context-menu");
@@ -806,10 +808,10 @@ class App {
 
         let imageAction = ["editLogo", "editSlide", "editIcon", "editImage"];
         let nameList = {
-            "editLogo": "로고 변경",
+            "editLogo": "로고 수정",
             "editMenu": "메뉴 변경",
             "showhide": "보이기/감추기",
-            "editSlide": "슬라이드 이미지 변경",
+            "editSlide": "비주얼 이미지 수정",
             "textStyle": "텍스트 색상/크기 변경",
             "editText": "텍스트 수정",
             "editLink": "링크 변경",
@@ -820,6 +822,8 @@ class App {
         };
 
         let menuList = target.dataset.context ? target.dataset.context.split(" ") : [];
+        event.menus = event.menus ? event.menus.concat(menuList) : menuList;
+        menuList = event.menus;
 
         let {clientX, clientY} = event;
         let elem = "<div class='context-menu'></div>".toElem();
